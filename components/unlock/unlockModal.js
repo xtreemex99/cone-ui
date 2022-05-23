@@ -3,6 +3,8 @@ import { DialogContent, DialogTitle, Dialog, Slide } from "@mui/material";
 import Unlock from "./unlock.js";
 import { Close } from '@mui/icons-material';
 import { useAppThemeContext } from '../../ui/AppThemeProvider';
+import Web3Modal from "web3modal";
+import { providerOptions } from "../../stores/wallet/provider";
 
 function Transition(props) {
   return <Slide direction="up" {...props} />;
@@ -12,6 +14,19 @@ export default function UnlockModal(props) {
   const {closeModal, modalOpen} = props;
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const {appTheme} = useAppThemeContext();
+  const web3Modal = new Web3Modal({
+    providerOptions // required
+  });
+  const connectWallet = async () => {
+    try {
+      const provider = await web3Modal.connect();
+     // const library = new ethers.providers.Web3Provider(provider);
+      // setProvider(provider);
+      // setLibrary(library);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   window.addEventListener('resize', () => {
     setWindowWidth(window.innerWidth);
@@ -29,6 +44,7 @@ export default function UnlockModal(props) {
         if (e.target.classList.contains('MuiDialog-container')) {
           closeModal()
         }
+     
       }}
     >
       <div style={{

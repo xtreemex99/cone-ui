@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import BigNumber from 'bignumber.js';
-
+import Web3Modal from "web3modal";
+import { providerOptions } from "../../stores/wallet/provider";
 import {
   Typography,
   Switch,
@@ -14,6 +15,7 @@ import {
   ListItemIcon,
   ListItemText, TableCell, ClickAwayListener,
 } from "@mui/material";
+import {ethers} from 'ethers'
 import { styled, withStyles, withTheme } from "@mui/styles";
 import {
   ArrowDropDown,
@@ -37,17 +39,20 @@ import Logo from "../../ui/Logo";
 import ThemeSwitcher from "../../ui/ThemeSwitcher";
 import { useAppThemeContext } from '../../ui/AppThemeProvider';
 import SSWarning from "../ssWarning";
+import Web3 from "web3";
 
 const {
   CONNECT_WALLET,
   CONNECTION_DISCONNECTED,
   ACCOUNT_CONFIGURED,
   ACCOUNT_CHANGED,
+  ERROR,
+  CONNECTION_CONNECTED,
+  CONFIGURE_SS,
   FIXED_FOREX_BALANCES_RETURNED,
   FIXED_FOREX_CLAIM_VECLAIM,
   FIXED_FOREX_VECLAIM_CLAIMED,
   FIXED_FOREX_UPDATED,
-  ERROR,
 } = ACTIONS;
 
 function WrongNetworkIcon(props) {
@@ -197,6 +202,11 @@ function Header(props) {
   const [darkMode, setDarkMode] = useState(
     props.theme.palette.mode === "dark" ? true : false,
   );
+  const [provider,setProvider] = useState([{}])
+  const [library,setLibrary] = useState([{}])
+  const [accounts, setAccounts] = useState([{}]);
+  const [network, setNetwork] = useState({});
+  const [web3context,setweb3context] = useState()
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [chainInvalid, setChainInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -205,8 +215,9 @@ function Header(props) {
 
   const web = async (add) => {
     const maticbalance = await stores.accountStore.getWeb3Provider();
-    let bal = await maticbalance.eth.getBalance(add);
-    setMaticBalance(BigNumber(bal).div(10 ** 18).toFixed(2));
+    console.log(maticBalance,"provider")
+    // let bal = await maticbalance.eth.getBalance(add);
+   // setMaticBalance(BigNumber(bal).div(10 ** 18).toFixed(2));
 
   };
   useEffect(() => {
@@ -214,7 +225,7 @@ function Header(props) {
     const accountConfigure = () => {
       const accountStore = stores.accountStore.getStore("account");
       const bb = stores.stableSwapStore.getStore("baseAssets");
-      if (accountStore){
+      if (accountStore && accountStore.address){
         web(accountStore.address)
       }
       setAccount(accountStore);
@@ -246,6 +257,43 @@ function Header(props) {
     };
   }, [maticBalance]);
 
+  useEffect(() => {
+    if (provider?.on) {
+      if (account && library) {
+        stores.accountStore.setStore({
+          account: {address: account},
+          web3context: web3context,
+        });
+        stores.emitter.emit(CONNECTION_CONNECTED);
+        stores.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
+      }
+
+      const handleAccountsChanged = (accounts) => {
+        setAccounts(accounts);
+      };
+  
+      const handleChainChanged = (chainId) => {
+        setChainId(chainId);
+      };
+  
+      const handleDisconnect = () => {
+        disconnect();
+      };
+  
+      provider.on("accountsChanged", handleAccountsChanged);
+      provider.on("chainChanged", handleChainChanged);
+      provider.on("disconnect", handleDisconnect);
+  
+      return () => {
+        if (provider.removeListener) {
+          provider.removeListener("accountsChanged", handleAccountsChanged);
+          provider.removeListener("chainChanged", handleChainChanged);
+          provider.removeListener("disconnect", handleDisconnect);
+        }
+      };
+    }
+  }, [provider,account,library]);
+
   const openWarning = () => {
     setWarningOpen(true);
   };
@@ -255,7 +303,29 @@ function Header(props) {
   };
 
   const onAddressClicked = () => {
-    setUnlockOpen(true);
+    const web3Modal = new Web3Modal({
+    network: "matic",
+      providerOptions:providerOptions // required
+    });
+    const connectWallet = async () => {
+      try {
+        const provider = await web3Modal.connect();
+        const web3 = new Web3(provider)
+        const library = new ethers.providers.Web3Provider(provider);
+        const accounts = await library.listAccounts();
+        const network = await library.getNetwork();
+
+    setweb3context(web3)
+        console.log(typeof(library),typeof(accounts),typeof(network),typeof(provider))
+        setProvider(provider);
+        setLibrary(library);
+        if (accounts) setAccount(accounts[0]);
+       // setNetwork(network);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    connectWallet()
     setWarningOpen(false);
   };
 
@@ -372,7 +442,7 @@ function Header(props) {
                   )}
                   <Typography className={classes.headBtnTxt}>
                     {account && account.address
-                      ? formatAddress(account.address)
+                      ? (account.address)
                       : "Connect Wallet"}
                   </Typography>
                 </div>
@@ -433,7 +503,7 @@ function Header(props) {
               <Typography
                 className={classes.headBtnTxt}>
                 {account && account.address
-                  ? formatAddress(account.address)
+                  ? (account.address)
                   : "Connect Wallet"}
               </Typography>
             </Button>

@@ -200,9 +200,9 @@ class Store {
     let provider = null;
 
     if (!web3context) {
-      provider = network.providers['1'];
+      provider = network.providers['137'];
     } else {
-      provider = web3context.library.provider;
+      provider = web3context;
     }
 
     if (!provider) {

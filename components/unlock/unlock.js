@@ -8,6 +8,8 @@ import classes from './unlockModal.module.css';
 import stores from "../../stores";
 import { useAppThemeContext } from '../../ui/AppThemeProvider';
 import Loader from '../../ui/Loader';
+import Web3Modal from "web3modal";
+import { providerOptions } from "../../stores/wallet/provider";
 
 const {
   ERROR,
@@ -85,7 +87,7 @@ class Unlock extends Component {
     stores.emitter.on(CONNECTION_DISCONNECTED, this.connectionDisconnected);
     stores.emitter.on(ERROR, this.error);
   }
-
+  
   componentWillUnmount() {
     stores.emitter.removeListener(
       CONNECTION_CONNECTED,
@@ -150,6 +152,7 @@ function onConnectionClicked(
   setActivatingConnector,
   activate,
 ) {
+  
   const connectorsByName = stores.accountStore.getStore("connectorsByName");
   setActivatingConnector(currentConnector);
 
@@ -186,6 +189,20 @@ function MyComponent(props) {
   var connectorsByName = stores.accountStore.getStore("connectorsByName");
 
   const {closeModal} = props;
+
+  const web3Modal = new Web3Modal({
+    providerOptions // required
+  });
+  const connectWallet = async () => {
+    try {
+      const provider = await web3Modal.connect();
+      //const library = new ethers.providers.Web3Provider(provider);
+      // setProvider(provider);
+      // setLibrary(library);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const [activatingConnector, setActivatingConnector] = React.useState();
   const [activatingNetwork, setActivatingNetwork] = React.useState('');
@@ -278,12 +295,13 @@ function MyComponent(props) {
               className={[classes.networkButton, classes[`networkButton--${appTheme}`]].join(' ')}
               onClick={() => {
                 setActivatingNetwork(name);
-                onConnectionClicked(
-                  currentConnector,
-                  name,
-                  setActivatingConnector,
-                  activate,
-                );
+                connectWallet
+                // onConnectionClicked(
+                //   currentConnector,
+                //   name,
+                //   setActivatingConnector,
+                //   activate,
+                // );
               }}
               disableElevation
               disabled={disabled}>
