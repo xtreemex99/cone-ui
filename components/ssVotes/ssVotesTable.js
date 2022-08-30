@@ -1842,31 +1842,12 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                             fontSize: 14,
                                             lineHeight: '120%',
                                             color: '#E4E9F4',
+                                            textAlign: 'right',
                                             whiteSpace: 'nowrap',
                                           }}>
-                                        {`${(numeral(BigNumber(row?.tvl).toLocaleString()).format('($ 0a)'))} `}
-                                      </Typography>
-
-                                      <Typography
-                                          className={classes.textSpaced}
-                                          style={{
-                                            fontWeight: 400,
-                                            fontSize: 14,
-                                            lineHeight: '120%',
-                                            color: '#E4E9F4',
-                                            whiteSpace: 'nowrap',
-                                          }}>
-                                        {`${
-                                            formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr).div(100).times(40),
-                                                BigNumber(row?.gauge?.boostedApr0),
-                                                BigNumber(row?.gauge?.boostedApr1)
-                                            ), 0)
-                                        }→${
-                                            formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr),
-                                                BigNumber(row?.gauge?.boostedApr0),
-                                                BigNumber(row?.gauge?.boostedApr1)
-                                            ),0)
-                                        } %`}
+                                        Current: {`${formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr), BigNumber(row?.gauge?.boostedApr0), BigNumber(row?.gauge?.boostedApr1)), 0)} %`}
+																		    <br />
+																		    Next: {`${formatCurrency(BigNumber(row?.gauge?.expectAPR), 0)}%`}
                                       </Typography>
                                     </div>
                                   </div>
