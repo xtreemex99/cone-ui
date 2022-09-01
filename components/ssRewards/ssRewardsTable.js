@@ -1429,8 +1429,8 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                   {row &&
                                     row.rewardType === "Fees" &&
                                     tableCellContent(
-                                      formatCurrency(row.claimable0),
-                                      formatCurrency(row.claimable1),
+                                      parseFloat(row.claimable0).toFixed(4),
+                                      parseFloat(row.claimable1).toFixed(4),
                                       row.token0?.symbol,
                                       row.token1?.symbol,
                                       row.token0 && row.token0.logoURI
@@ -1444,7 +1444,7 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                   {row &&
                                     row.rewardType === "Reward" &&
                                     tableCellContent(
-                                      formatCurrency(row.gauge.rewardsEarned),
+                                      parseFloat(row.gauge.rewardsEarned).toFixed(4),
                                       null,
                                       "CONE",
                                       null
@@ -1453,7 +1453,7 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                   {row &&
                                     row.rewardType === "Distribution" &&
                                     tableCellContent(
-                                      formatCurrency(row.earned),
+                                      parseFloat(row.earned).toFixed(4),
                                       null,
                                       row.rewardToken.symbol,
                                       null
