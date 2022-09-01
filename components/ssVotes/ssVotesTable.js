@@ -1845,11 +1845,11 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                             textAlign: 'right',
                                             whiteSpace: 'nowrap',
                                           }}>
-                                        Current: {`${formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr), BigNumber(row?.gauge?.boostedApr0), BigNumber(row?.gauge?.boostedApr1)), 0)} %`}
-																		    <br />
-																		    Next: {`${formatCurrency(BigNumber(row?.gauge?.expectAPR), 0)}%`}
+                                        Current: {`${formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr), BigNumber(row?.gauge?.boostedApr0), BigNumber(row?.gauge?.boostedApr1)), 0)}%`}
+										<br />
+										Next: {`${formatCurrency(BigNumber(row?.gauge?.expectAPR), 0)}%`}
                                     </Typography>
-                                    <Typography
+                                    {/* <Typography
                                           className={classes.textSpaced}
                                           style={{
                                             fontWeight: 400,
@@ -1858,18 +1858,18 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                             color: '#E4E9F4',
                                             whiteSpace: 'nowrap',
                                           }}>
-                                        {`${
+                                        Boosted: {`${
                                             formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr).div(100).times(40),
                                                 BigNumber(row?.gauge?.boostedApr0),
                                                 BigNumber(row?.gauge?.boostedApr1)
                                             ), 0)
-                                        }→${
+                                        }%→${
                                             formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr),
                                                 BigNumber(row?.gauge?.boostedApr0),
                                                 BigNumber(row?.gauge?.boostedApr1)
                                             ),0)
-                                        } %`}
-                                      </Typography>
+                                        }%`}
+                                      </Typography> */}
                                     </div>
                                   </div>
                                 </div>
