@@ -1403,16 +1403,18 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                     display: "flex",
                                     justifyContent: "flex-end",
                                     alignItems: "center",
-                                    height: 72,
+                                    height: 85,
+                                    marginTop: 10,
                                   }}
                                 >
+                                  <div>
                                   {row &&
                                     row.rewardType === "Bribe" &&
                                     row.gauge &&
                                     row.gauge.bribesEarned &&
                                     row.gauge.bribesEarned.map((bribe) => {
                                       return tableCellContent(
-                                        formatCurrency(bribe.earned),
+                                        parseFloat(bribe.earned).toFixed(4),
                                         null,
                                         bribe.token?.symbol,
                                         null,
@@ -1423,7 +1425,7 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
                                           : `/tokens/unknown-logo--${appTheme}.svg`
                                       );
                                     })}
-
+                                  </div>
                                   {row &&
                                     row.rewardType === "Fees" &&
                                     tableCellContent(
