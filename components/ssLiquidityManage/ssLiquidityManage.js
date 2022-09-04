@@ -1803,12 +1803,12 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
               >
                 <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="6" y="6" width="60" height="60" rx="30" fill="#171D2D"/>
-                  <path d="M43.8398 46.4194L43.8398 32.5794C43.8398 30.9194 42.4998 29.5794 40.8398 29.5794L37.5198 29.5794" stroke="#8191B9" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M47 43.2599L43.84 46.4199L40.68 43.2599" stroke="#8191B9" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M28.16 46.4196L28.16 32.5796C28.16 30.9196 29.5 29.5796 31.16 29.5796L39 29.5796" stroke="#8191B9" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M24.9998 43.2598L28.1598 46.4198L31.3198 43.2598" stroke="#8191B9" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M43.8398 46.4194L43.8398 32.5794C43.8398 30.9194 42.4998 29.5794 40.8398 29.5794L37.5198 29.5794" stroke="#8191B9" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M47 43.2599L43.84 46.4199L40.68 43.2599" stroke="#8191B9" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M28.16 46.4196L28.16 32.5796C28.16 30.9196 29.5 29.5796 31.16 29.5796L39 29.5796" stroke="#8191B9" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M24.9998 43.2598L28.1598 46.4198L31.3198 43.2598" stroke="#8191B9" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M35.25 29.5C35.25 29.9142 35.5858 30.25 36 30.25C36.4142 30.25 36.75 29.9142 36.75 29.5H35.25ZM36.75 25C36.75 24.5858 36.4142 24.25 36 24.25C35.5858 24.25 35.25 24.5858 35.25 25H36.75ZM36.75 29.5V25H35.25V29.5H36.75Z" fill="#8191B9"/>
-                  <rect x="6" y="6" width="60" height="60" rx="30" stroke="#060B17" stroke-width="12"/>
+                  <rect x="6" y="6" width="60" height="60" rx="30" stroke="#060B17" strokeWidth="12"/>
                 </svg>
 
               </div>
@@ -2068,7 +2068,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           ].join(" ")}
         >
           <svg width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16.9201 0.950012L10.4001 7.47001C9.63008 8.24001 8.37008 8.24001 7.60008 7.47001L1.08008 0.950012" stroke="#D3F85A" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16.9201 0.950012L10.4001 7.47001C9.63008 8.24001 8.37008 8.24001 7.60008 7.47001L1.08008 0.950012" stroke="#D3F85A" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
       </ClickAwayListener>
