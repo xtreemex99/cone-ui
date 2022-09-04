@@ -1,145 +1,28 @@
 import DEFAULT_TOKEN_LIST from './constants/tokenlists/pancakeswap-extended.json'
-import async from "promise-async";
 import {
-  MAX_UINT256,
-  ZERO_ADDRESS,
   ACTIONS,
-  CONTRACTS,
   BASE_ASSETS_WHITELIST,
   BLACK_LIST_TOKENS,
-  ROUTE_ASSETS, CONE_ADDRESS
+  CONE_ADDRESS,
+  CONTRACTS,
+  MAX_UINT256, QUERIES,
+  ROUTE_ASSETS,
+  ZERO_ADDRESS
 } from "./constants";
 import {v4 as uuidv4} from "uuid";
 
 import * as moment from "moment";
-import {formatCurrency, retry, buildRoutes, getPrice, getAmountOut} from "../utils";
+import {buildRoutes, formatCurrency, getAmountOut, getPrice, removeDuplicate, retry} from "../utils";
 import stores from "./";
 
 import BigNumber from "bignumber.js";
 import {createClient} from "urql";
-import {assertValidExecutionArguments} from "graphql/execution/execute";
 import axios from "axios";
 import pairContractAbi from "./abis/pairOldRouter.json";
 import migratorAbi from "./abis/migrator.json";
-import FactoryAbi from "./abis/FactoryAbi.json";
-import {ConstructionOutlined} from "@mui/icons-material";
-import {
-  ERC20_ABI,
-  USD_PLUS_ADDRESS,
-  USD_PLUS_BOOSTED_DATA_URL,
-} from "./constants/contracts";
 import router from "next/router";
-import {PAIR_ABI} from "./constants/contractsTestnet";
-
-const pairsQuery = `
-{
-  pairs(first: 1000) {
-    id
-    name
-    symbol
-    isStable
-    reserve0
-    reserve1
-    token0Price
-    token1Price
-    totalSupply
-    reserveUSD
-    token0 {
-      id
-      symbol
-      name
-      decimals
-      isWhitelisted
-      derivedETH
-    }
-    token1 {
-      id
-      symbol
-      name
-      decimals
-      isWhitelisted
-      derivedETH
-    }
-    gauge {
-      id
-      totalSupply
-      totalSupplyETH
-      expectAPR
-      voteWeight
-      totalWeight
-      bribe {
-        id
-      }
-      rewardTokens {
-        apr
-      }
-    }
-    gaugebribes {
-      id
-      bribeTokens {
-        apr
-        left
-        token {
-          symbol
-        }
-      }
-    }
-  }
-}
-`;
-
-const tokensQuery = `
-  query {
-    tokens{
-      id
-      symbol
-      name
-      decimals
-      isWhitelisted
-      derivedETH
-    }
-  }
-`;
-const bundleQuery = `
-  query {
-    bundle(id:1){
-      ethPrice
-    }
-  }
-`;
-
-const veDistQuery = `
-{
-  veDistEntities {
-    apr
-  }
-}
-`;
-
-const veQuery = `
-query ve($id: ID!) {
-  veNFTEntities(where: {id: $id}) {
-    gauges {
-      gauge {
-        id
-      }
-    }
-    bribes {
-      id
-    }    
-  }
-}
-`;
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
-
-const removeDuplicate = (arr) => {
-  const assets = arr.reduce((acc, item) => {
-    acc[item.symbol] = item;
-    return acc;
-  }, {});
-  return Object.values(assets);
-};
 
 class Store {
   constructor(dispatcher, emitter) {
@@ -148,7 +31,6 @@ class Store {
 
     this.store = {
       baseAssets: [],
-      assets: [],
       govToken: null,
       veToken: null,
       pairs: [],
@@ -159,7 +41,6 @@ class Store {
         fees: [],
         rewards: [],
       },
-      tvls: [],
       apr: [],
     };
 
@@ -315,23 +196,7 @@ class Store {
 
   // COMMON GETTER FUNCTIONS Assets, BaseAssets, Pairs etc
   getAsset = (address) => {
-    const assets = this.store.assets;
-    if (!assets || assets.length === 0) {
-      return null;
-    }
-
-    let theAsset = assets.filter((ass) => {
-      if (!ass) {
-        return false;
-      }
-      return ass.address.toLowerCase() === address.toLowerCase();
-    });
-
-    if (!theAsset || theAsset.length === 0) {
-      return null;
-    }
-
-    return theAsset[0];
+    return this.store.baseAssets.filter(a => a?.address?.toLowerCase() === address?.toLowerCase()).reduce((a, b) => b, null);
   };
 
   getNFTByID = async (id) => {
@@ -1094,7 +959,7 @@ class Store {
 
   _getBaseAssets = async () => {
     try {
-      const baseAssetsCall = await client.query(tokensQuery).toPromise();
+      const baseAssetsCall = await client.query(QUERIES.tokensQuery).toPromise();
       // console.log("QUERY TWO RESPONSE",baseAssetsCall)
       let baseAssets = baseAssetsCall.data.tokens;
       const defaultTokenList =
@@ -1182,7 +1047,7 @@ class Store {
 
   _getPairs = async () => {
     try {
-      const pairsCall = await client.query(pairsQuery).toPromise();
+      const pairsCall = await client.query(QUERIES.pairsQuery).toPromise();
       // console.log('QUERY PAIRS ERROR', pairsCall);
       if (!!pairsCall.error) {
         console.log('QUERY PAIRS ERROR', pairsCall.error);
@@ -1272,7 +1137,7 @@ class Store {
   _getVeTokenBase = async () => {
     let apr = 0;
     try {
-      const veDistResponse = await client.query(veDistQuery).toPromise();
+      const veDistResponse = await client.query(QUERIES.veDistQuery).toPromise();
       if (!veDistResponse.error && veDistResponse.data.veDistEntities.length !== 0) {
         apr = veDistResponse.data.veDistEntities[0].apr;
       }
@@ -1403,7 +1268,7 @@ class Store {
         pairs = this.getStore("pairs");
       }
 
-      const ethPrice = parseFloat((await client.query(bundleQuery).toPromise()).data.bundle.ethPrice);
+      const ethPrice = parseFloat((await client.query(QUERIES.bundleQuery).toPromise()).data.bundle.ethPrice);
 
       const voterContract = new web3.eth.Contract(
         CONTRACTS.VOTER_ABI,
@@ -2636,7 +2501,7 @@ class Store {
 
   updatePairsCall = async (web3, account) => {
     try {
-      const response = await client.query(pairsQuery).toPromise();
+      const response = await client.query(QUERIES.pairsQuery).toPromise();
       const pairsCall = response;
       this.setStore({pairs: pairsCall.data.pairs});
 
@@ -4339,10 +4204,12 @@ class Store {
         // console.log('stable', bestAmountOut.routes[i].stable);
 
         try {
-          const tokenInDecimals = await (new web3.eth.Contract(
-            CONTRACTS.ERC20_ABI,
-            bestAmountOut.routes[i].from
-          )).methods.decimals().call();
+          // const tokenInDecimals = await (new web3.eth.Contract(
+          //   CONTRACTS.ERC20_ABI,
+          //   bestAmountOut.routes[i].from
+          // )).methods.decimals().call();
+
+          const tokenInDecimals = this.getAsset(bestAmountOut.routes[i].from.toLowerCase()).decimals
 
           // console.log('reserves call',
           //   BigNumber(amountIn).div(10 ** parseInt(tokenInDecimals)).toString(),
@@ -5231,7 +5098,7 @@ class Store {
     try {
       const {tokenID} = payload.content;
 
-      const veGaugesQueryResponse = (await client.query(veQuery, {id: tokenID}).toPromise());
+      const veGaugesQueryResponse = (await client.query(QUERIES.veQuery, {id: tokenID}).toPromise());
       // console.log('VE GAUGES', veGaugesQueryResponse)
       if (!!veGaugesQueryResponse.error) {
         console.log("VE GAUGES QUERY ERROR", veGaugesQueryResponse.error);
@@ -5402,7 +5269,7 @@ class Store {
     try {
       const {tokenIDOne, tokenIDTwo} = payload.content;
 
-      const veGaugesQueryResponse = (await client.query(veQuery, {id: tokenIDOne.id}).toPromise());
+      const veGaugesQueryResponse = (await client.query(QUERIES.veQuery, {id: tokenIDOne.id}).toPromise());
       // console.log('VE GAUGES', veGaugesQueryResponse)
       if (!!veGaugesQueryResponse.error) {
         console.log("VE GAUGES QUERY ERROR", veGaugesQueryResponse.error);

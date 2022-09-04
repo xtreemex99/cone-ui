@@ -189,6 +189,15 @@ export const retry = ({fn, args, defaultValue}) => {
   return wrappedFn;
 };
 
+export const removeDuplicate = (arr) => {
+  const assets = arr.reduce((acc, item) => {
+    acc[item.symbol] = item;
+    return acc;
+  }, {});
+  return Object.values(assets);
+};
+
+
 // ROUTES
 
 export function buildRoutes(routeAssets, addy0, addy1) {

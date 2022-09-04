@@ -592,9 +592,9 @@ const useStyles = makeStyles((theme) => ({
 
     color: '#E4E9F4',
 
-    ["@media (max-width: 1550px)"]: {
-      marginBottom: 0,
-    },
+    // ["@media (max-width: 1550px)"]: {
+    //   marginBottom: 0,
+    // },
 
     ["@media (max-width: 1550px)"]: {
       marginTop: 12,

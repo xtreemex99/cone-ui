@@ -6,7 +6,7 @@ function Vesting() {
   return (
     <NotConnect
       title="Whitelist"
-      description="Whitelist tokens to be used in Solidly Gauges."
+      description="Whitelist tokens to be used in Cone Gauges."
       buttonText="LAUNCH APP"
     >
       <WhitelistTokens />

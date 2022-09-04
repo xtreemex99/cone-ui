@@ -203,7 +203,7 @@ export default function ssBribeCreate() {
 
         <Typography className={classes.inputBalanceText} noWrap >
           <svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11.653 6.03324C11.373 6.30658 11.213 6.69991 11.253 7.11991C11.313 7.83991 11.973 8.36658 12.693 8.36658H13.9997V9.33325C13.9997 11.3333 12.6663 12.6666 10.6663 12.6666H4.66634C2.66634 12.6666 1.33301 11.3333 1.33301 9.33325V4.66659C1.33301 2.85325 2.42634 1.58658 4.12634 1.37325C4.29968 1.34658 4.47967 1.33325 4.66634 1.33325H10.6663C10.8397 1.33325 11.0063 1.33991 11.1663 1.36658C12.8863 1.56658 13.9997 2.83992 13.9997 4.66659V5.63326H12.613C12.2397 5.63326 11.8997 5.77991 11.653 6.03324Z" stroke="#8191B9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11.653 6.03324C11.373 6.30658 11.213 6.69991 11.253 7.11991C11.313 7.83991 11.973 8.36658 12.693 8.36658H13.9997V9.33325C13.9997 11.3333 12.6663 12.6666 10.6663 12.6666H4.66634C2.66634 12.6666 1.33301 11.3333 1.33301 9.33325V4.66659C1.33301 2.85325 2.42634 1.58658 4.12634 1.37325C4.29968 1.34658 4.47967 1.33325 4.66634 1.33325H10.6663C10.8397 1.33325 11.0063 1.33991 11.1663 1.36658C12.8863 1.56658 13.9997 2.83992 13.9997 4.66659V5.63326H12.613C12.2397 5.63326 11.8997 5.77991 11.653 6.03324Z" stroke="#8191B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           {(assetValue && assetValue.balance) ?
             ' ' + formatCurrency(assetValue.balance) :
@@ -303,12 +303,12 @@ export default function ssBribeCreate() {
         {renderMassiveGaugeInput('gauge', gauge, null, gaugeOptions, onGagugeSelect)}
         <svg className={classes.bribeSvg} width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="4" y="4" width="56" height="56" rx="28" fill="#171D2D"/>
-          <path d="M29.5 33.75C29.5 34.72 30.25 35.5 31.17 35.5H33.05C33.85 35.5 34.5 34.82 34.5 33.97C34.5 33.06 34.1 32.73 33.51 32.52L30.5 31.47C29.91 31.26 29.51 30.94 29.51 30.02C29.51 29.18 30.16 28.49 30.96 28.49H32.84C33.76 28.49 34.51 29.27 34.51 30.24" stroke="#8191B9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M32 27.5V36.5" stroke="#8191B9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M42 32C42 37.52 37.52 42 32 42C26.48 42 22 37.52 22 32C22 26.48 26.48 22 32 22" stroke="#8191B9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M37 23V27H41" stroke="#8191B9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M42 22L37 27" stroke="#8191B9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="4" y="4" width="56" height="56" rx="28" stroke="#060B17" stroke-width="8"/>
+          <path d="M29.5 33.75C29.5 34.72 30.25 35.5 31.17 35.5H33.05C33.85 35.5 34.5 34.82 34.5 33.97C34.5 33.06 34.1 32.73 33.51 32.52L30.5 31.47C29.91 31.26 29.51 30.94 29.51 30.02C29.51 29.18 30.16 28.49 30.96 28.49H32.84C33.76 28.49 34.51 29.27 34.51 30.24" stroke="#8191B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M32 27.5V36.5" stroke="#8191B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M42 32C42 37.52 37.52 42 32 42C26.48 42 22 37.52 22 32C22 26.48 26.48 22 32 22" stroke="#8191B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M37 23V27H41" stroke="#8191B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M42 22L37 27" stroke="#8191B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect x="4" y="4" width="56" height="56" rx="28" stroke="#060B17" strokeWidth="8"/>
         </svg>
 
         <div style={{marginTop: 36}}>
@@ -550,11 +550,11 @@ function AssetSelectManage({type, value, assetOptions, onSelect, manageLocalAsse
               endAdornment: <InputAdornment position="end">
                 {/*Search icon*/}
                 <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <div style={{position: 'relative'}}>
                   <svg style={{position: 'absolute', top: 8, right: 0,}} width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3L1 1" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 3L1 1" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
               </InputAdornment>,
@@ -613,11 +613,11 @@ function AssetSelectManage({type, value, assetOptions, onSelect, manageLocalAsse
               endAdornment: <InputAdornment position="end">
                 {/*Search icon*/}
                 <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <div style={{position: 'relative'}}>
                   <svg style={{position: 'absolute', top: 8, right: 0,}} width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3L1 1" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 3L1 1" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
               </InputAdornment>,
@@ -954,11 +954,11 @@ function AssetSelectPair({type, value, assetOptions, onSelect, manageLocalAssets
               endAdornment: <InputAdornment position="end">
                   {/*Search icon*/}
                   <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <div style={{position: 'relative'}}>
                       <svg style={{position: 'absolute', top: 8, right: 0,}} width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 3L1 1" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M3 3L1 1" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                   </div>
               </InputAdornment>,
@@ -1018,11 +1018,11 @@ function AssetSelectPair({type, value, assetOptions, onSelect, manageLocalAssets
               endAdornment: <InputAdornment position="end">
                   {/*Search icon*/}
                   <svg width="19" height="19" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <div style={{position: 'relative'}}>
                       <svg style={{position: 'absolute', top: 8, right: 0,}} width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 3L1 1" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M3 3L1 1" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                   </div>
               </InputAdornment>,
