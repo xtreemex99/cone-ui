@@ -56,6 +56,63 @@ export const pairsQuery = `
 }
 `;
 
+export const pairQuery = `
+query pairQuery($id: ID!) {
+  pair(id: $id) {
+    id
+    name
+    symbol
+    isStable
+    reserve0
+    reserve1
+    token0Price
+    token1Price
+    totalSupply
+    reserveUSD
+    token0 {
+      id
+      symbol
+      name
+      decimals
+      isWhitelisted
+      derivedETH
+    }
+    token1 {
+      id
+      symbol
+      name
+      decimals
+      isWhitelisted
+      derivedETH
+    }
+    gauge {
+      id
+      totalSupply
+      totalSupplyETH
+      expectAPR
+      voteWeight
+      totalWeight
+      bribe {
+        id
+      }
+      rewardTokens {
+        apr
+      }
+    }
+    gaugebribes {
+      id
+      bribeTokens {
+        apr
+        left
+        token {
+          symbol
+        }
+      }
+    }
+  }
+}
+`;
+
 export const tokensQuery = `
   query {
     tokens{

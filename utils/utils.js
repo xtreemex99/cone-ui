@@ -1,12 +1,24 @@
 import BigNumber from "bignumber.js";
 
-// todo: get navigator declared somehow? probably an issue with using nextjs
-// function getLang() {
-//  if (window.navigator.languages != undefined)
-//   return window.navigator.languages[0];
-//  else
-//   return window.navigator.language;
-// }
+export function formatBN(num, decimals = '18') {
+  if(!num) {
+    return "0";
+  }
+  return BigNumber(num)
+    .div(BigNumber(10).pow(BigNumber(parseInt(decimals))))
+    .toFixed(parseInt(decimals));
+}
+
+export function parseBN(num, decimals = '18') {
+  if(!num) {
+    // parse function pretty critical coz using in contract calls
+    // better to throw an error
+    throw new Error("Invalid bn");
+  }
+  return BigNumber(num)
+    .times(BigNumber(10).pow(BigNumber(parseInt(decimals))))
+    .toFixed(0);
+}
 
 export function formatCurrency(amount, decimals = 2) {
   if (!isNaN(amount)) {
