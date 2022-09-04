@@ -90,6 +90,9 @@ export default function ssWhitelist() {
       setWhitelistLoading(false);
     };
 
+    // need to call for case when we came from already loaded pages
+    ssUpdated();
+
     stores.emitter.on(ACTIONS.ERROR, errorReturned);
     stores.emitter.on(ACTIONS.UPDATED, ssUpdated);
     stores.emitter.on(ACTIONS.ACCOUNT_CHANGED, accountChanged);

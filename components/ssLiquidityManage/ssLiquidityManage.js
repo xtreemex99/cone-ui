@@ -44,8 +44,6 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   const openStablePoolHint = Boolean(stablePoolHntAnchor);
   const openVolatilePoolHint = Boolean(volatilePoolHntAnchor);
 
-  const [pairReadOnly, setPairReadOnly] = useState(false);
-
   const [pair, setPair] = useState(null);
   const [veToken, setVeToken] = useState(null);
 
@@ -158,9 +156,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     }
   };
 
-  const openSlippage = Boolean(anchorEl);
-
   const ssUpdated = async () => {
+    // console.log('LIQUI update')
     const storeAssetOptions = stores.stableSwapStore.getStore("baseAssets");
     const nfts = stores.stableSwapStore.getStore("vestNFTs");
     const veTok = stores.stableSwapStore.getStore("veToken");
@@ -186,7 +183,6 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     }
 
     if (router.query.address && router.query.address !== "create") {
-      setPairReadOnly(true);
 
       const pp = await stores.stableSwapStore.getPairByAddress(
         router.query.address
@@ -207,12 +203,14 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       let aa0 = asset0;
       let aa1 = asset1;
       if (storeAssetOptions.length > 0 && asset0 == null) {
-        setAsset0(storeAssetOptions[0]);
-        aa0 = storeAssetOptions[0];
+        const asset = storeAssetOptions.filter(a => a.symbol === 'BNB')[0];
+        setAsset0(asset);
+        aa0 = asset;
       }
-      if (storeAssetOptions.length > 0 && asset1 == null) {
-        setAsset1(storeAssetOptions[1]);
-        aa1 = storeAssetOptions[1];
+      if (storeAssetOptions.length > 1 && asset1 == null) {
+        const asset = storeAssetOptions.filter(a => a.symbol === 'CONE')[0];
+        setAsset1(asset);
+        aa1 = asset;
       }
       if (withdrawAassetOptions.length > 0 && withdrawAsset == null) {
         setWithdrawAsset(withdrawAassetOptions[0]);
@@ -347,7 +345,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     assetA,
     assetB
   ) => {
-    if (parseFloat(pp?.reserve0) != 0 && parseFloat(pp?.reserve1) != 0) {
+    if (parseFloat(pp?.reserve0) !== 0 && parseFloat(pp?.reserve1) !== 0) {
       if (!pp) {
         return null;
       }
@@ -365,14 +363,14 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       }
 
       if (
-        addy1.toLowerCase() == pp.token0.address.toLowerCase() &&
-        addy0.toLowerCase() == pp.token1.address.toLowerCase()
+        addy1.toLowerCase() === pp.token0.address.toLowerCase() &&
+        addy0.toLowerCase() === pp.token1.address.toLowerCase()
       ) {
         invert = true;
       }
 
-      if (pa == 0) {
-        if (amountA == "") {
+      if (pa === 0) {
+        if (amountA === "") {
           setAmount1("");
         } else {
           if (invert) {
@@ -397,8 +395,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           setAmount1(amountB);
         }
       }
-      if (pa == 1) {
-        if (amountB == "") {
+      if (pa === 1) {
+        if (amountB === "") {
           setAmount0("");
         } else {
           if (invert) {
@@ -469,7 +467,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   };
 
   const onSlippageChanged = (event) => {
-    if (event.target.value == "" || !isNaN(event.target.value)) {
+    if (event.target.value === "" || !isNaN(event.target.value)) {
       setSlippage(event.target.value);
     }
   };
@@ -579,7 +577,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           amount0: amount0,
           amount1: amount1,
           minLiquidity: quote ? quote : "0",
-          slippage: (slippage && slippage) != "" ? slippage : "2",
+          slippage: (slippage && slippage) !== "" ? slippage : "2",
         },
       });
     }
@@ -599,7 +597,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           amount: (percent * balance) / 100,
           token: token,
           percent: percent,
-          slippage: (slippage && slippage) != "" ? slippage : "2",
+          slippage: (slippage && slippage) !== "" ? slippage : "2",
         },
       });
     }
@@ -650,12 +648,12 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       }
     }
 
-    if (!asset0 || asset0 === null) {
+    if (!asset0) {
       setAmount0Error("Asset is required");
       error = true;
     }
 
-    if (!asset1 || asset1 === null) {
+    if (!asset1) {
       setAmount1Error("Asset is required");
       error = true;
     }
@@ -671,7 +669,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           amount1: amount1,
           isStable: stable,
           token: token,
-          slippage: (slippage && slippage) != "" ? slippage : "2",
+          slippage: (slippage && slippage) !== "" ? slippage : "2",
         },
       });
     }
@@ -682,7 +680,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
     let error = false;
 
-    if (!withdrawAsset || withdrawAsset === null) {
+    if (!withdrawAsset) {
       setWithdrawAmountError("Asset is required");
       error = true;
     }
@@ -704,7 +702,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           token0: withdrawAsset.token0,
           token1: withdrawAsset.token1,
           percent: withdrawAmount,
-          slippage: (slippage && slippage) != "" ? slippage : "2",
+          slippage: (slippage && slippage) !== "" ? slippage : "2",
         },
       });
     }
@@ -724,8 +722,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
         amount1: withdrawAmount1,
         quote: withdrawQuote,
         percent: withdrawAmount,
-        slippage: (slippage && slippage) != "" ? slippage : "2",
-        all: (withdrawAmount == 100)
+        slippage: (slippage && slippage) !== "" ? slippage : "2",
+        all: (withdrawAmount === '100')
       },
     });
   };
@@ -936,7 +934,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   };
 
   const calcRemove = (pear, amount) => {
-    if (!(amount && amount != "" && amount > 0)) {
+    if (!(amount && amount !== "" && amount > 0)) {
       return;
     }
     callQuoteRemoveLiquidity(pear, amount);
@@ -1193,204 +1191,6 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
         </div>
       </div>
     );
-  };
-
-  const renderDepositInformation = () => {
-    if (!pair) {
-      return (
-        <div className={classes.depositInfoContainer}>
-          <Typography className={classes.depositInfoHeading}>
-            Starting Liquidity Info
-          </Typography>
-          <div
-            style={{
-              width: "100%",
-              border: `1px solid ${
-                appTheme === "dark" ? "#5F7285" : "#86B9D6"
-              }`,
-            }}
-            className={["g-flex"].join(" ")}
-          >
-            <div
-              className={[
-                classes.priceInfo,
-                classes[`priceInfo--${appTheme}`],
-              ].join(" ")}
-            >
-              <Borders
-                offsetLeft={-1}
-                offsetRight={-1}
-                offsetTop={-1}
-                offsetBottom={-1}
-              />
-
-              <Typography className={classes.title}>
-                {BigNumber(amount1).gt(0)
-                  ? formatCurrency(BigNumber(amount0).div(amount1))
-                  : "0.00"}
-              </Typography>
-
-              <Typography className={classes.text}>
-                {`${formatSymbol(asset0?.symbol ?? "")} per ${formatSymbol(
-                  asset1?.symbol ?? ""
-                )}`}
-              </Typography>
-            </div>
-
-            <div
-              className={[
-                classes.priceInfo,
-                classes[`priceInfo--${appTheme}`],
-              ].join(" ")}
-            >
-              <Borders
-                offsetLeft={-1}
-                offsetRight={-1}
-                offsetTop={-1}
-                offsetBottom={-1}
-              />
-
-              <Typography className={classes.title}>
-                {BigNumber(amount0).gt(0)
-                  ? formatCurrency(BigNumber(amount1).div(amount0))
-                  : "0.00"}
-              </Typography>
-
-              <Typography className={classes.text}>{`${formatSymbol(
-                asset1?.symbol ?? ""
-              )} per ${formatSymbol(asset0?.symbol ?? "")}`}</Typography>
-            </div>
-          </div>
-        </div>
-      );
-    } else {
-      return (
-        <div className={classes.depositInfoContainer}>
-          <div
-            className={[
-              classes.dividerLine,
-              classes[`dividerLine--${appTheme}`],
-            ].join(" ")}
-          ></div>
-
-          <Typography
-            className={[
-              classes.depositInfoHeading,
-              classes[`depositInfoHeading--${appTheme}`],
-            ].join(" ")}
-          >
-            Reserve Info
-          </Typography>
-
-          <div
-            className={[
-              classes.priceInfos,
-              classes[`priceInfos--${appTheme}`],
-            ].join(" ")}
-          >
-            <div
-              className={[
-                classes.priceInfo,
-                classes[`priceInfo--${appTheme}`],
-              ].join(" ")}
-            >
-              <Borders
-                offsetLeft={-1}
-                offsetRight={-1}
-                offsetTop={-1}
-                offsetBottom={-1}
-              />
-
-              <Typography className={classes.text}>
-                {`${formatSymbol(pair?.token0?.symbol ?? "")}`}
-              </Typography>
-
-              <Typography className={classes.title}>
-                {formatCurrency(pair?.reserve0 ?? "")}
-              </Typography>
-            </div>
-
-            <div
-              className={[
-                classes.priceInfo,
-                classes[`priceInfo--${appTheme}`],
-              ].join(" ")}
-            >
-              <Borders
-                offsetLeft={-1}
-                offsetRight={-1}
-                offsetTop={-1}
-                offsetBottom={-1}
-              />
-
-              <Typography className={classes.text}>
-                {`${formatSymbol(pair?.token1?.symbol ?? "")}`}
-              </Typography>
-
-              <Typography className={classes.title}>
-                {formatCurrency(pair?.reserve1 ?? "")}
-              </Typography>
-            </div>
-          </div>
-
-          <Typography
-            className={[
-              classes.depositInfoHeading,
-              classes[`depositInfoHeading--${appTheme}`],
-            ].join(" ")}
-          >
-            {`Your Balances - ${formatSymbol(pair?.symbol ?? "")}`}
-          </Typography>
-
-          <div
-            className={[
-              classes.priceInfos,
-              classes[`priceInfos--${appTheme}`],
-            ].join(" ")}
-          >
-            <div
-              className={[
-                classes.priceInfo,
-                classes[`priceInfo--${appTheme}`],
-              ].join(" ")}
-            >
-              <Borders
-                offsetLeft={-1}
-                offsetRight={-1}
-                offsetTop={-1}
-                offsetBottom={-1}
-              />
-
-              <Typography className={classes.text}>Pooled</Typography>
-
-              <Typography className={classes.title}>
-                {formatCurrency(pair?.balance)}
-              </Typography>
-            </div>
-
-            <div
-              className={[
-                classes.priceInfo,
-                classes[`priceInfo--${appTheme}`],
-              ].join(" ")}
-            >
-              <Borders
-                offsetLeft={-1}
-                offsetRight={-1}
-                offsetTop={-1}
-                offsetBottom={-1}
-              />
-
-              <Typography className={classes.text}>Staked</Typography>
-
-              <Typography className={classes.title}>
-                {formatCurrency(pair?.gauge?.balance)}
-              </Typography>
-            </div>
-          </div>
-        </div>
-      );
-    }
   };
 
   const renderToggleIcon = (action) => {
@@ -1657,7 +1457,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             </div>
 
             <div className={["g-flex-column", "g-flex__item"].join(" ")}>
-              {withdrawAction == "remove" && (
+              {withdrawAction === "remove" && (
                 <div
                   className={[
                     classes.liqHeader,
@@ -1832,74 +1632,6 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       </div>
     );
   };
-
-  /*const renderSmallInput = (type, amountValue, amountError, amountChanged) => {
-    return (
-      <div
-        className={[
-          "g-flex",
-          "g-flex--align-center",
-          "g-flex--space-between",
-        ].join(" ")}
-      >
-        <div
-          className={[
-            classes.slippageTextContainer,
-            classes[`slippageTextContainer--${appTheme}`],
-            "g-flex",
-            "g-flex--align-center",
-          ].join(" ")}
-        >
-          <div style={{ marginRight: 5 }}>Slippage:</div>
-          <TextField
-            placeholder="0.00"
-            fullWidth
-            error={amountError}
-            helperText={amountError}
-            value={amountValue}
-            onChange={amountChanged}
-            disabled={true}
-            InputProps={{
-              style: {
-                border: "none",
-                borderRadius: 0,
-              },
-              classes: {
-                root: classes.searchInput,
-              },
-              endAdornment: (
-                <InputAdornment position="end">
-                  <span
-                    style={{
-                      color: appTheme === "dark" ? "#ffffff" : "#325569",
-                    }}
-                  >
-                    %
-                  </span>
-                </InputAdornment>
-              ),
-            }}
-            inputProps={{
-              className: [
-                classes.smallInput,
-                classes[`inputBalanceSlippageText--${appTheme}`],
-              ].join(" "),
-              style: {
-                textAlign: "right",
-                padding: 0,
-                borderRadius: 0,
-                border: "none",
-                fontSize: 14,
-                fontWeight: 400,
-                lineHeight: "120%",
-                color: appTheme === "dark" ? "#C6CDD2" : "#325569",
-              },
-            }}
-          />
-        </div>
-      </div>
-    );
-  };*/
 
   const renderMediumInputToggle = (type, value) => {
     return (
@@ -2183,10 +1915,6 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     );
   };
 
-  const toggleAdvanced = () => {
-    setAdvanced(!advanced);
-  };
-
   const switchToggleCreateLP = () => {
     const nextValue = !createLP;
     setAsset0(null);
@@ -2207,7 +1935,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
   useEffect(() => {
     if (withdrawAsset?.gauge?.tokenId && vestNFTs.length > 0) {
-      setLockedNft(vestNFTs.filter(a => a.id == withdrawAsset?.gauge?.tokenId)[0])
+      setLockedNft(vestNFTs.filter(a => a.id === withdrawAsset?.gauge?.tokenId)[0])
     } else {
       setLockedNft(undefined)
     }
@@ -2297,8 +2025,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
-                  {withdrawAction == 'unstake' && 'Unstake LP'}
-                  {withdrawAction == 'remove' && 'Remove LP'}
+                  {withdrawAction === 'unstake' && 'Unstake LP'}
+                  {withdrawAction === 'remove' && 'Remove LP'}
                   {!withdrawAction && 'Withdraw LP'}
                 </div>
             )}
@@ -2813,16 +2541,12 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                     </Button>
                 )}
                 <div style={{padding: '0 6px'}}>
-                  {createLP && amount0 == "" && amount1 == "" && (
+                  {createLP && amount0 === "" && amount1 === "" && (
                       <Button
                           variant="contained"
                           size="large"
                           color="primary"
-                          onClick={() => {
-                            if (needAddToWhiteList !== "") {
-                              return;
-                            }
-                          }}
+                          onClick={() => {}}
                           disabled={
                               amount0 === "" || amount1 === "" || needAddToWhiteList !== ""
                           }
@@ -3026,9 +2750,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                     color="primary"
                     onClick={() => handleWithdraw(withdrawAsset)}
                     disabled={
-                        withdrawAmount == "" ||
-                        parseFloat(withdrawAmount) == 0 ||
-                        withdrawAction == ""
+                        withdrawAmount === "" ||
+                        parseFloat(withdrawAmount) === 0 ||
+                        withdrawAction === ""
                     }
                     className={[
                       classes.buttonOverride,
@@ -3038,7 +2762,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             <span className={classes.actionButtonText}>
               {withdrawAsset !== null && (
                   <>
-                    {withdrawAction == "" && "Select the action"}
+                    {withdrawAction === "" && "Select the action"}
 
                     {parseFloat(withdrawAmount) > 0 &&
                         withdrawAction === "unstake" &&
@@ -3048,7 +2772,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         withdrawAction === "remove" &&
                         "Remove LP"}
 
-                    {(withdrawAction != "" && (parseFloat(withdrawAmount) == 0 || withdrawAmount == "")) &&
+                    {(withdrawAction !== "" && (parseFloat(withdrawAmount) === 0 || withdrawAmount === "")) &&
                         "Enter Amount"}
                   </>
               )}

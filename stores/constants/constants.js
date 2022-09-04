@@ -25,7 +25,20 @@ export const MAX_UINT256 = new BigNumber(2).pow(256).minus(1).toFixed(0)
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const CONE_ADDRESS = '0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9'.toLowerCase();
 export const WBNB_ADDRESS = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'.toLowerCase();
+export const NETWORK_TOKEN_NAME = 'BNB';
 
+export const NETWORK_TOKEN = {
+  id: WBNB_ADDRESS,
+  address: WBNB_ADDRESS,
+  decimals: 18,
+  logoURI: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+  name: NETWORK_TOKEN_NAME,
+  symbol: NETWORK_TOKEN_NAME,
+};
+
+export const RENAME_ASSETS = {
+  "miMATIC": "MAI"
+}
 
 export const BLACK_LIST_TOKENS = []
 

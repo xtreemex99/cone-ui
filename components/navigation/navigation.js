@@ -89,9 +89,6 @@ function Navigation(props) {
     if (activePath.includes("whitelist")) {
       setActive("whitelist");
     }
-    if (activePath.includes("migrate")) {
-      setActive("migrate");
-    }
   }, []);
 
   const renderNavs = () => {

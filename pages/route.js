@@ -2,16 +2,15 @@ import Swap from "./swap";
 import Liquidity from "./liquidity";
 import LiquidityAddress from "./liquidity/[address]";
 import Vest from "./vest";
-import Migrate from "./migrate";
 import Vote from "./vote";
 import Rewards from "./rewards";
 import Whitelist from "./whitelist";
 import Bribe from "./bribe/create";
 import HomePage from "./home";
 
-import { useRouter } from "next/router";
+import {useRouter} from "next/router";
 
-function Route({ changeTheme, ...props }) {
+function Route({changeTheme, ...props}) {
   const router = useRouter();
   const activePath = router.asPath;
 
@@ -25,8 +24,6 @@ function Route({ changeTheme, ...props }) {
     }
   } else if (activePath.includes("/vest")) {
     return <Vest props={props} changeTheme={changeTheme} />;
-  } else if (activePath.includes("/migrate")) {
-    return <Migrate props={props} changeTheme={changeTheme} />;
   } else if (activePath.includes("/vote")) {
     return <Vote props={props} changeTheme={changeTheme} />;
   } else if (activePath.includes("/rewards")) {
