@@ -6,7 +6,7 @@ import {getEthPrice, getOrCreateBaseAsset} from "./token-helper";
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
-function getPairContract(web3, pairAddress) {
+export function getPairContract(web3, pairAddress) {
   return new web3.eth.Contract(CONTRACTS.PAIR_ABI, pairAddress);
 }
 
@@ -26,7 +26,7 @@ function findPair(pairs, pairAddress) {
 }
 
 function getPairByTokens(pairs, t0, t1, stable) {
-  if(!t0 || !t1) {
+  if (!t0 || !t1) {
     return null;
   }
   return pairs.filter((pair) => (pair?.token0?.address?.toLowerCase() === t0.toLowerCase() &&
@@ -242,7 +242,7 @@ async function loadFullPairInfo(pairAddress, web3, account, baseAssets) {
 }
 
 export async function getPairAddressByTokens(web3, addressA, addressB, stable) {
-  if(!addressA || !addressB) {
+  if (!addressA || !addressB) {
     return null;
   }
   const factoryContract = new web3.eth.Contract(
@@ -410,7 +410,7 @@ async function getTotalWight(web3) {
   return formatBN(await voterContract.methods.totalWeight().call());
 }
 
-async function loadUserInfoFromSubgraph(userAddress) {
+export async function loadUserInfoFromSubgraph(userAddress) {
   const resp = (await client.query(QUERIES.userQuery, {id: userAddress.toLowerCase()}).toPromise());
   if (!!resp.error) {
     console.log("User query error", resp.error);
@@ -418,6 +418,94 @@ async function loadUserInfoFromSubgraph(userAddress) {
     // console.log('User query', resp.data.user)
   }
   return resp.data.user;
+}
+
+export function enrichPositionInfoToPairs(pairs, userInfo) {
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    pair.userPosition = userInfo?.liquidityPositions?.filter(p => p.pair.id.toLowerCase() === pair.id?.toLowerCase())?.reduce((a, b) => b, null);
+  }
+}
+
+async function fetchBalancesForPairs(
+  pairs,
+  userInfo,
+  multicall,
+  web3,
+  userAddress
+) {
+
+  let balanceCalls = [];
+  let balanceCallsPairs = [];
+  const pairsWithPosition = [];
+
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    pair.balance = "0"
+    if (!!pair.userPosition) {
+      pairsWithPosition.push(pair);
+    }
+  }
+
+  for (let i = 0; i < pairsWithPosition.length; i++) {
+    const pair = pairsWithPosition[i];
+    balanceCalls.push(getPairContract(web3, pair.id).methods.balanceOf(userAddress))
+    balanceCallsPairs.push(pair);
+    if (balanceCalls > 30) {
+      const balances = await multicall.aggregate(balanceCalls);
+      for (let j = 0; j < balanceCallsPairs.length; j++) {
+        balanceCallsPairs[j].balance = formatBN(balances[j], balanceCallsPairs[j].decimals);
+      }
+      balanceCalls = [];
+      balanceCallsPairs = [];
+    }
+  }
+  if (balanceCalls.length > 0) {
+    const balances = await multicall.aggregate(balanceCalls);
+    for (let j = 0; j < balanceCallsPairs.length; j++) {
+      balanceCallsPairs[j].balance = formatBN(balances[j], balanceCallsPairs[j].decimals);
+    }
+  }
+}
+
+
+async function fetchGaugeBalancesForPairs(
+  pairs,
+  multicall,
+  web3,
+  userAddress
+) {
+
+  let calls = [];
+  let callsPairs = [];
+  const pairsWithPosition = [];
+
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    if (!!pair.userPosition && pair.gauge && pair.gauge.address !== ZERO_ADDRESS) {
+      pairsWithPosition.push(pair);
+    }
+  }
+
+  for (let i = 0; i < pairsWithPosition.length; i++) {
+    const pair = pairsWithPosition[i];
+    calls.push(getGaugeContract(web3, pair.gauge.address).methods.balanceOf(userAddress))
+    callsPairs.push(pair);
+    if (calls > 30) {
+      const balances = await multicall.aggregate(calls);
+      for (let j = 0; j < callsPairs.length; j++) {
+        callsPairs[j].gauge.balance = formatBN(balances[j], callsPairs[j].decimals);
+      }
+      calls = [];
+      callsPairs = [];
+    }
+  }
+  if (calls.length > 0) {
+    const balances = await multicall.aggregate(calls);
+    for (let j = 0; j < callsPairs.length; j++) {
+      callsPairs[j].gauge.balance = formatBN(balances[j], callsPairs[j].decimals);
+    }
+  }
 }
 
 export const enrichPairInfo = async (
@@ -432,123 +520,111 @@ export const enrichPairInfo = async (
     return pairs;
   }
   try {
-    const ethPrice = getEthPrice();
-    const totalWeight = await getTotalWight(web3);
-
     const userInfo = await loadUserInfoFromSubgraph(userAddress);
 
-    const ps = await Promise.all(
-      pairs.map(async (pair) => {
+    enrichPositionInfoToPairs(pairs, userInfo)
 
-        pair.balance = BigNumber(0)
-        pair.claimable0 = BigNumber(0)
-        pair.claimable1 = BigNumber(0)
-
-        const userPosition = userInfo?.liquidityPositions?.filter(p => p.pair.address?.toLowerCase() === pair.address?.toLowerCase())?.reduce((a, b) => b, null);
-        pair.userPosition = userPosition;
-        if (!userPosition) {
-          const pairContract = getPairContract(web3, pair.id);
-          const [balanceOf, claimable0, claimable1] =
-            await multicall.aggregate([
-              pairContract.methods.balanceOf(account.address),
-              pairContract.methods.claimable0(account.address),
-              pairContract.methods.claimable1(account.address),
-            ]);
-          pair.balance = formatBN(balanceOf, pair.decimals);
-          pair.claimable0 = formatBN(claimable0, pair.token0.decimals);
-          pair.claimable1 = formatBN(claimable1, pair.token1.decimals);
-        }
-
-        const token0 = await getOrCreateBaseAsset(
-          baseAssets,
-          pair.token0.address,
-          web3,
-          account,
-          false
-        );
-        const token1 = await getOrCreateBaseAsset(
-          baseAssets,
-          pair.token1.address,
-          web3,
-          account,
-          false
-        );
-        pair.token0 = token0 != null ? token0 : pair.token0;
-        pair.token1 = token1 != null ? token1 : pair.token1;
-
-        pair.tvl = pair.reserveUSD;
-        return pair;
-      })
+    await fetchBalancesForPairs(
+      pairs,
+      userInfo,
+      multicall,
+      web3,
+      userAddress
     );
 
-    return await Promise.all(
-      ps.map(async (pair) => {
-        if (pair.gauge && pair.gauge.address !== ZERO_ADDRESS) {
-          const gaugeContract = getGaugeContract(web3, pair.gauge.address)
+    await fetchGaugeBalancesForPairs(
+      pairs,
+      multicall,
+      web3,
+      userAddress
+    )
 
-          if (pair.userPosition !== null) {
-            const [gaugeBalance, tokenId] =
-              await multicall.aggregate([
-                gaugeContract.methods.balanceOf(account.address),
-                gaugeContract.methods.tokenIds(account.address),
-              ]);
+    await addTokenInfoToPairs(pairs, baseAssets, web3, account)
 
-            pair.gauge.balance = formatBN(gaugeBalance);
-            pair.gauge.tokenId = tokenId.toString();
-          } else {
-            pair.gauge.balance = formatBN(pair.gauge.balance)
-            pair.gauge.tokenId = pair.gauge.tokenId?.toString()
-          }
+    const ethPrice = getEthPrice();
+    const totalWeight = await getTotalWight(web3);
+    mapPairInfo(pairs, ethPrice, totalWeight);
 
-
-          pair.gauge.totalSupplyUSD = parseFloat(pair.gauge.totalSupply) / ethPrice;
-
-          pair.gauge.reserve0 =
-            parseFloat(pair.totalSupply) > 0
-              ? parseFloat(
-                BigNumber(parseFloat(pair.reserve0))
-                  .times(parseFloat(pair.gauge.totalSupply))
-                  .div(parseFloat(pair.totalSupply))
-              ).toFixed(parseInt(pair.token0.decimals))
-              : "0";
-          pair.gauge.reserve1 =
-            parseFloat(pair.totalSupply) > 0
-              ? parseFloat(
-                BigNumber(parseFloat(pair.reserve1))
-                  .times(parseFloat(pair.gauge.totalSupply))
-                  .div(parseFloat(pair.totalSupply))
-              ).toFixed(parseInt(pair.token1.decimals))
-              : "0";
-
-          pair.gauge.weight = BigNumber(parseFloat(pair.gauge.voteWeight)).toString();
-          pair.gauge.weightPercent =
-            parseInt(pair.gauge.totalWeight) !== 0
-              ? BigNumber(parseFloat(pair.gauge.voteWeight))
-                .times(100)
-                .div(totalWeight)
-                .toFixed(2)
-              : 0;
-
-          if (pair.gauge.weight === '0') {
-            pair.gauge.expectAPR = 0;
-          }
-
-          let apr = new BigNumber(0);
-          const rts = pair.gauge.rewardTokens;
-          for (let i = 0; i < rts.length; i++) {
-            apr = apr.plus(BigNumber(parseFloat(rts[i].apr)))
-          }
-
-          pair.gauge.apr = apr.toString();
-          pair.gauge.boostedApr0 = "0";
-          pair.gauge.boostedApr1 = "0";
-          return pair;
-        }
-        return pair;
-      })
-    );
+    return pairs;
   } catch (ex) {
     console.log("Error get pair infos", ex);
     return null;
   }
 };
+
+async function addTokenInfoToPairs(pairs, baseAssets, web3, account) {
+  await Promise.all(
+    pairs.map(async (pair) => {
+      const token0 = await getOrCreateBaseAsset(
+        baseAssets,
+        pair.token0.address,
+        web3,
+        account,
+        false
+      );
+      const token1 = await getOrCreateBaseAsset(
+        baseAssets,
+        pair.token1.address,
+        web3,
+        account,
+        false
+      );
+      pair.token0 = token0 != null ? token0 : pair.token0;
+      pair.token1 = token1 != null ? token1 : pair.token1;
+      return pair;
+    })
+  );
+}
+
+function mapPairInfo(pairs, ethPrice, totalWeight) {
+  pairs.forEach((pair) => {
+      pair.tvl = pair.reserveUSD;
+      if (!pair.gauge || pair.gauge.address === ZERO_ADDRESS) {
+        return;
+      }
+
+      pair.gauge.totalSupplyUSD = parseFloat(pair.gauge.totalSupply) / ethPrice;
+
+      pair.gauge.reserve0 =
+        parseFloat(pair.totalSupply) > 0
+          ? parseFloat(
+            BigNumber(parseFloat(pair.reserve0))
+              .times(parseFloat(pair.gauge.totalSupply))
+              .div(parseFloat(pair.totalSupply))
+          ).toFixed(parseInt(pair.token0.decimals))
+          : "0";
+      pair.gauge.reserve1 =
+        parseFloat(pair.totalSupply) > 0
+          ? parseFloat(
+            BigNumber(parseFloat(pair.reserve1))
+              .times(parseFloat(pair.gauge.totalSupply))
+              .div(parseFloat(pair.totalSupply))
+          ).toFixed(parseInt(pair.token1.decimals))
+          : "0";
+
+      pair.gauge.weight = BigNumber(parseFloat(pair.gauge.voteWeight)).toString();
+      pair.gauge.weightPercent =
+        parseInt(pair.gauge.totalWeight) !== 0
+          ? BigNumber(parseFloat(pair.gauge.voteWeight))
+            .times(100)
+            .div(totalWeight)
+            .toFixed(2)
+          : 0;
+
+      if (pair.gauge.weight === '0') {
+        pair.gauge.expectAPR = 0;
+      }
+
+      let apr = new BigNumber(0);
+      const rts = pair.gauge.rewardTokens;
+      for (let i = 0; i < rts.length; i++) {
+        apr = apr.plus(BigNumber(parseFloat(rts[i].apr)))
+      }
+
+      pair.gauge.apr = apr.toString();
+      pair.gauge.boostedApr0 = "0";
+      pair.gauge.boostedApr1 = "0";
+
+    }
+  );
+}

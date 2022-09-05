@@ -1,7 +1,7 @@
-import {ACTIONS, CONTRACTS, QUERIES} from "../constants";
+import {CONTRACTS, QUERIES} from "../constants";
 import BigNumber from "bignumber.js";
-import stores from "../index";
 import {createClient} from "urql";
+import {formatBN} from '../../utils';
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
@@ -12,9 +12,9 @@ export function getNftById(id, nfts) {
   return nfts.filter(n => parseInt(n.id) === parseInt(id)).reduce((a, b) => b, null);
 }
 
-export const loadNfts = async (account, web3, govToken) => {
+export const loadNfts = async (account, web3) => {
   if (!account || !web3) {
-    return null;
+    return [];
   }
   try {
     const vestingContract = getVestingContract(web3);
@@ -39,18 +39,14 @@ export const loadNfts = async (account, web3, govToken) => {
         return {
           id: tokenIndex,
           lockEnds: locked.end,
-          lockAmount: BigNumber(locked.amount)
-            .div(10 ** parseInt(govToken.decimals))
-            .toFixed(parseInt(govToken.decimals)),
-          lockValue: BigNumber(lockValue)
-            .div(10 ** 18)
-            .toFixed(18),
+          lockAmount: formatBN(locked.amount),
+          lockValue: formatBN(lockValue),
         };
       })
     );
   } catch (ex) {
     console.log("Error load veNFTs", ex);
-    return null;
+    return [];
   }
 };
 
@@ -83,7 +79,7 @@ export const updateVestNFTByID = async (id, vestNFTs, web3, govToken) => {
     });
   } catch (ex) {
     console.log("Error update veNFT", ex);
-    return null;
+    return vestNFTs;
   }
 };
 
@@ -97,6 +93,16 @@ export async function getVeApr() {
     console.log("Error get ve apr", e);
   }
   return 0;
+}
+
+export async function getVeFromSubgraph(tokenID) {
+  const resp = await client.query(QUERIES.veQuery, {id: tokenID}).toPromise();
+  if (!!resp.error) {
+    console.log("Ve query error", resp.error);
+  } else {
+    // console.log('Ve query', resp)
+  }
+  return resp.data.ve;
 }
 
 function getVestingContract(web3) {

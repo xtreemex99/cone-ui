@@ -40,6 +40,11 @@ export const pairsQuery = `
       }
       rewardTokens {
         apr
+        token {
+          id
+          symbol
+          decimals
+        }
       }
     }
     gaugebribes {
@@ -144,10 +149,14 @@ export const veDistQuery = `
 
 export const veQuery = `
 query ve($id: ID!) {
-  veNFTEntities(where: {id: $id}) {
+  veNFTEntity(id: $id) {
     gauges {
       gauge {
         id
+        pair {
+          id
+          symbol
+        }
       }
     }
     bribes {
@@ -165,11 +174,26 @@ query user($id: ID!) {
           pair {
             id
             symbol
+            token0{
+              id
+              symbol
+              decimals
+            }
+            token1 {
+              id
+              symbol
+              decimals
+            }
           }
         }
     gaugePositions {
+      balance
       gauge {
+        totalSupply
         id
+        bribe{
+          id
+        }        
         pair {
           id
           symbol
@@ -195,7 +219,29 @@ query user($id: ID!) {
           pair {
             id
             symbol
+            reserve0
+            reserve1
+            totalSupply
+            token0{
+              id
+              symbol
+              decimals
+            }
+            token1 {
+              id
+              symbol
+              decimals
+            }
           }
+          bribeTokens {
+            apr
+            token {
+              id
+              decimals
+              symbol
+
+            }
+          }          
         }
       }
     }
