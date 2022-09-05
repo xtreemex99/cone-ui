@@ -1,9 +1,10 @@
 import BigNumber from "bignumber.js";
 import {ACTIONS, CONTRACTS} from "./../constants";
-import {parseBN, formatBN} from '../../utils';
+import {formatBN, getTXUUID} from '../../utils';
 import {enrichPositionInfoToPairs, getPairContract, loadUserInfoFromSubgraph} from "./pair-helper";
 import {enrichLogoUri} from "./token-helper";
 import {multicallRequest} from "./multicall-helper";
+import {callContractWait} from "./web3-helper";
 
 let rewardsLoading = false;
 
@@ -15,7 +16,8 @@ function bribeModel(
   gaugeTotalSupply,
   balance,
   gaugeReserve0,
-  gaugeReserve1
+  gaugeReserve1,
+  bribeAddress
 ) {
   return {
     rewardType: "Bribe",
@@ -26,6 +28,7 @@ function bribeModel(
     reserve0: "0",
     reserve1: "0",
     gauge: {
+      bribeAddress: bribeAddress,
       balance: balance,
       totalSupply: gaugeTotalSupply,
       reserve0: gaugeReserve0,
@@ -102,7 +105,8 @@ async function collectBribeRewards(tokenID, userInfo, web3, baseAssets) {
       gaugeTotalSupply,
       balance,
       gaugeReserve0,
-      gaugeReserve1
+      gaugeReserve1,
+      bribe.id
     );
     for (const rt of bribe.bribeTokens) {
       const earned = await bribeContract.methods.earned(rt.token.id, tokenIdAdr).call();
@@ -112,6 +116,7 @@ async function collectBribeRewards(tokenID, userInfo, web3, baseAssets) {
         model.gauge.bribesEarned.push({
           earned: formatBN(earned, rt.token.decimals),
           token: {
+            address: rt.token.id,
             symbol: rt.token.symbol,
             logoURI: rt.token.logoURI,
           },
@@ -261,4 +266,424 @@ export const getRewardBalances = async (
   }
 };
 
+export const claimBribes = async (
+  payload,
+  account,
+  web3,
+  emitter,
+  dispatcher,
+  gasPrice,
+  callback
+) => {
+  try {
+    const {pair, tokenID} = payload.content;
+
+    // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+    let claimTXID = getTXUUID();
+
+    emitter.emit(ACTIONS.TX_ADDED, {
+      title: `Claim rewards for ${pair.token0.symbol}/${pair.token1.symbol}`,
+      verb: "Rewards Claimed",
+      transactions: [
+        {
+          uuid: claimTXID,
+          description: `Claiming your bribes`,
+          status: "WAITING",
+        },
+      ],
+    });
+
+    // SUBMIT CLAIM TRANSACTION
+    const gaugesContract = new web3.eth.Contract(CONTRACTS.VOTER_ABI, CONTRACTS.VOTER_ADDRESS);
+    console.log(pair)
+    const sendGauges = [pair.gauge.bribeAddress];
+    const sendTokens = [pair.gauge.bribesEarned.map((bribe) => bribe.token.address)];
+
+    await callContractWait(
+      web3,
+      gaugesContract,
+      "claimBribes",
+      [sendGauges, sendTokens, tokenID],
+      account,
+      gasPrice,
+      null,
+      null,
+      claimTXID,
+      emitter,
+      dispatcher,
+      async (err) => {
+        if (err) {
+          return emitter.emit(ACTIONS.ERROR, err);
+        }
+        await callback(tokenID)
+        emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
+      }
+    );
+  } catch (ex) {
+    console.error("Claim bribes error", ex);
+    emitter.emit(ACTIONS.ERROR, ex);
+  }
+};
+
+export const claimAllRewards = async (
+  payload,
+  account,
+  web3,
+  emitter,
+  dispatcher,
+  gasPrice,
+  callback
+) => {
+  try {
+    const {pairs, tokenID} = payload.content;
+
+    // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+    let claimTXID = getTXUUID();
+    let feeClaimTXIDs = [];
+    let rewardClaimTXIDs = [];
+    let distributionClaimTXIDs = [];
+
+    let bribePairs = pairs.filter((pair) => pair.rewardType === "Bribe");
+
+    let feePairs = pairs.filter((pair) => pair.rewardType === "Fees");
+
+    let rewardPairs = pairs.filter((pair) => pair.rewardType === "Reward");
+
+    let distribution = pairs.filter((pair) => pair.rewardType === "Distribution");
+
+    const sendGauges = bribePairs.map((pair) => pair.gauge.bribeAddress);
+    const sendTokens = bribePairs.map((pair) => pair.gauge.bribesEarned.map((bribe) => bribe.token.address));
+
+    if (
+      distribution.length === 0 &&
+      bribePairs.length === 0 &&
+      feePairs.length === 0 &&
+      rewardPairs.length === 0
+    ) {
+      emitter.emit(ACTIONS.ERROR, "Nothing to claim");
+      emitter.emit(ACTIONS.CLAIM_ALL_REWARDS_RETURNED);
+      return;
+    }
+
+    let sendOBJ = {
+      title: `Claim all rewards`,
+      verb: "Rewards Claimed",
+      transactions: [],
+    };
+
+    if (bribePairs.length > 0) {
+      sendOBJ.transactions.push({
+        uuid: claimTXID,
+        description: `Claiming all your available bribes`,
+        status: "WAITING",
+      });
+    }
+
+
+    for (let i = 0; i < feePairs.length; i++) {
+      const newClaimTX = getTXUUID();
+      feeClaimTXIDs.push(newClaimTX);
+      sendOBJ.transactions.push({
+        uuid: newClaimTX,
+        description: `Claiming fees for ${feePairs[i].symbol}`,
+        status: "WAITING",
+      });
+    }
+
+
+    for (let i = 0; i < rewardPairs.length; i++) {
+      const newClaimTX = getTXUUID();
+      rewardClaimTXIDs.push(newClaimTX);
+      sendOBJ.transactions.push({
+        uuid: newClaimTX,
+        description: `Claiming reward for ${rewardPairs[i].symbol}`,
+        status: "WAITING",
+      });
+    }
+
+    for (let i = 0; i < distribution.length; i++) {
+      const newClaimTX = getTXUUID();
+      distributionClaimTXIDs.push(newClaimTX);
+      sendOBJ.transactions.push({
+        uuid: newClaimTX,
+        description: `Claiming distribution for NFT #${distribution[i].token.id}`,
+        status: "WAITING",
+      });
+    }
+
+    emitter.emit(ACTIONS.TX_ADDED, sendOBJ);
+
+    if (bribePairs.length > 0) {
+      const voterContract = new web3.eth.Contract(CONTRACTS.VOTER_ABI, CONTRACTS.VOTER_ADDRESS);
+      await callContractWait(
+        web3,
+        voterContract,
+        "claimBribes",
+        [sendGauges, sendTokens, tokenID],
+        account,
+        gasPrice,
+        null,
+        null,
+        claimTXID,
+        emitter,
+        dispatcher,
+        async (err) => {
+          if (err) {
+            return emitter.emit(ACTIONS.ERROR, err);
+          }
+          await callback(tokenID);
+        }
+      )
+    }
+
+    for (let i = 0; i < feePairs.length; i++) {
+      const pairContract = new web3.eth.Contract(CONTRACTS.PAIR_ABI, feePairs[i].address);
+      callContractWait(
+        web3,
+        pairContract,
+        "claimFees",
+        [],
+        account,
+        gasPrice,
+        null,
+        null,
+        feeClaimTXIDs[i],
+        emitter,
+        dispatcher,
+        async (err) => {
+          if (err) {
+            return emitter.emit(ACTIONS.ERROR, err);
+          }
+          await callback(tokenID);
+        }
+      );
+    }
+
+
+    for (let i = 0; i < rewardPairs.length; i++) {
+      const gaugeContract = new web3.eth.Contract(CONTRACTS.GAUGE_ABI, rewardPairs[i].gauge.address);
+      const sendTok = rewardPairs[i].gauge.rewardTokens.map(t => t.token.id);
+
+      callContractWait(
+        web3,
+        gaugeContract,
+        "getReward",
+        [account.address, sendTok],
+        account,
+        gasPrice,
+        null,
+        null,
+        rewardClaimTXIDs[i],
+        emitter,
+        dispatcher,
+        async (err) => {
+          if (err) {
+            return emitter.emit(ACTIONS.ERROR, err);
+          }
+          await callback(tokenID);
+        }
+      )
+    }
+
+    for (let i = 0; i < distribution.length; i++) {
+      const veDistContract = new web3.eth.Contract(CONTRACTS.VE_DIST_ABI, CONTRACTS.VE_DIST_ADDRESS);
+      callContractWait(
+        web3,
+        veDistContract,
+        "claim",
+        [tokenID],
+        account,
+        gasPrice,
+        null,
+        null,
+        distributionClaimTXIDs[i],
+        emitter,
+        dispatcher,
+        async (err) => {
+          if (err) {
+            return emitter.emit(ACTIONS.ERROR, err);
+          }
+          await callback(tokenID);
+        }
+      );
+    }
+
+    emitter.emit(ACTIONS.CLAIM_ALL_REWARDS_RETURNED);
+  } catch (ex) {
+    console.error("Claim error", ex);
+    emitter.emit(ACTIONS.ERROR, ex);
+  }
+};
+
+export const claimRewards = async (
+  payload,
+  account,
+  web3,
+  emitter,
+  dispatcher,
+  gasPrice,
+  callback
+) => {
+  try {
+
+    const {pair, tokenID} = payload.content;
+
+    let claimTXID = getTXUUID();
+
+    emitter.emit(ACTIONS.TX_ADDED, {
+      title: `Claim rewards for ${pair.token0.symbol}/${pair.token1.symbol}`,
+      verb: "Rewards Claimed",
+      transactions: [
+        {
+          uuid: claimTXID,
+          description: `Claiming your rewards`,
+          status: "WAITING",
+        },
+      ],
+    });
+
+    // SUBMIT CLAIM TRANSACTION
+    const gaugeContract = new web3.eth.Contract(CONTRACTS.GAUGE_ABI, pair.gauge.address);
+
+    const sendTokens = pair.gauge.rewardTokens.map(t => t.token.id);
+
+    await callContractWait(
+      web3,
+      gaugeContract,
+      "getReward",
+      [account.address, sendTokens],
+      account,
+      gasPrice,
+      null,
+      null,
+      claimTXID,
+      emitter,
+      dispatcher,
+      async (err) => {
+        if (err) {
+          return emitter.emit(ACTIONS.ERROR, err);
+        }
+        await callback(tokenID);
+        emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
+      }
+    );
+  } catch (ex) {
+    console.error("Claim gauge rewards error", ex);
+    emitter.emit(ACTIONS.ERROR, ex);
+  }
+};
+
+export const claimVeDist = async (
+  payload,
+  account,
+  web3,
+  emitter,
+  dispatcher,
+  gasPrice,
+  callback
+) => {
+  try {
+    const {tokenID} = payload.content;
+
+    // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+    let claimTXID = getTXUUID();
+
+    emitter.emit(ACTIONS.TX_ADDED, {
+      title: `Claim distribution for NFT #${tokenID}`,
+      verb: "Rewards Claimed",
+      transactions: [
+        {
+          uuid: claimTXID,
+          description: `Claiming your distribution`,
+          status: "WAITING",
+        },
+      ],
+    });
+
+    // SUBMIT CLAIM TRANSACTION
+    const veDistContract = new web3.eth.Contract(CONTRACTS.VE_DIST_ABI, CONTRACTS.VE_DIST_ADDRESS);
+
+    await callContractWait(
+      web3,
+      veDistContract,
+      "claim",
+      [tokenID],
+      account,
+      gasPrice,
+      null,
+      null,
+      claimTXID,
+      emitter,
+      dispatcher,
+      async (err) => {
+        if (err) {
+          return emitter.emit(ACTIONS.ERROR, err);
+        }
+
+        await callback(tokenID)
+        emitter.emit(ACTIONS.CLAIM_VE_DIST_RETURNED);
+      }
+    );
+  } catch (ex) {
+    console.error("Claim dis rewards error", ex);
+    emitter.emit(ACTIONS.ERROR, ex);
+  }
+};
+
+export const claimPairFees = async (
+  payload,
+  account,
+  web3,
+  emitter,
+  dispatcher,
+  gasPrice,
+  callback
+) => {
+  try {
+    const {pair, tokenID} = payload.content;
+
+    // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
+    let claimTXID = getTXUUID();
+
+    emitter.emit(ACTIONS.TX_ADDED, {
+      title: `Claim fees for ${pair.token0.symbol}/${pair.token1.symbol}`,
+      verb: "Fees Claimed",
+      transactions: [
+        {
+          uuid: claimTXID,
+          description: `Claiming your fees`,
+          status: "WAITING",
+        },
+      ],
+    });
+
+    // SUBMIT CLAIM TRANSACTION
+    const pairContract = new web3.eth.Contract(CONTRACTS.PAIR_ABI, pair.address);
+
+    await callContractWait(
+      web3,
+      pairContract,
+      "claimFees",
+      [],
+      account,
+      gasPrice,
+      null,
+      null,
+      claimTXID,
+      emitter,
+      dispatcher,
+      async (err) => {
+        if (err) {
+          return emitter.emit(ACTIONS.ERROR, err);
+        }
+
+        await callback(tokenID)
+        emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
+      }
+    );
+  } catch (ex) {
+    console.error("Claim pair fees error", ex);
+    emitter.emit(ACTIONS.ERROR, ex);
+  }
+};
 
