@@ -157,7 +157,7 @@ export const getBaseAssets = async () => {
   }
 };
 
-export const enrichBaseAssetInfo = async (web3, account, baseAssets, multicall) => {
+export const getBalancesForBaseAssets = async (web3, account, baseAssets, multicall) => {
   try {
     let batch = [];
     let tokens = [];
@@ -203,6 +203,11 @@ export const getTokenAllowance = async (web3, token, account, spender) => {
     return null;
   }
 };
+
+export function enrichLogoUri(baseAssets, tokenModel) {
+  const asset = baseAssets.filter(a => a.id.toLowerCase() === tokenModel.id.toLowerCase())[0]
+  tokenModel.logoURI = asset?.logoURI;
+}
 
 // export const getLiquidityBalances = async (
 //   pair,

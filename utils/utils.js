@@ -1,4 +1,9 @@
 import BigNumber from "bignumber.js";
+import {v4 as uuidv4} from "uuid";
+
+export const getTXUUID = () => {
+  return uuidv4();
+};
 
 export function formatBN(num, decimals = '18') {
   if(!num) {
@@ -122,8 +127,8 @@ export function multiplyArray(numbers) {
 
 export const formatSymbol = (symbol) => {
   if (typeof symbol !== "string") return symbol;
-  if (symbol.includes("sAMM")) return symbol.replace("sAMM-", "");
-  if (symbol.includes("vAMM")) return symbol.replace("vAMM-", "");
+  if (symbol.includes("sAMM")) return symbol.replace("sAMM-", "s-");
+  if (symbol.includes("vAMM")) return symbol.replace("vAMM-", "v-");
   return symbol;
 };
 
