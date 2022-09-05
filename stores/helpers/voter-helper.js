@@ -147,6 +147,7 @@ export const getVestVotes = async (
       payload,
       account,
       emitter,
+      pairs
     );
   }
 }
@@ -155,6 +156,7 @@ const getVestVotesSubgraph = async (
   payload,
   account,
   emitter,
+  pairs
 ) => {
   const {tokenID} = payload.content;
   if (!tokenID) {
@@ -164,15 +166,22 @@ const getVestVotesSubgraph = async (
   try {
     const userInfo = await loadUserInfoFromSubgraph(account.address)
     const veInfo = userInfo.nfts?.filter(nft => nft.id === tokenID)[0]
-    let votes = [];
+    let votes = pairs.map(pair => {
+      return {
+        address: pair.id,
+        votePercent: "0"
+      }
+    });
     if (!!veInfo && !!veInfo.votes) {
       for (const vote of veInfo.votes) {
-        votes.push({
-          address: vote.pool.id,
-          votePercent: vote.weightPercent
+        votes.filter(v => v.address.toLowerCase() === vote.pool.id.toLowerCase()).map(v => {
+          v.votePercent = vote.weightPercent
+          return v;
         });
       }
     }
+
+
     emitter.emit(ACTIONS.VEST_VOTES_RETURNED, votes);
   } catch (ex) {
     console.error(ex);
@@ -211,7 +220,12 @@ const getVestVotesOnChain = async (
 
     voteCounts.push(...(await multicall.aggregate(calls)))
 
-    let votes = [];
+    let votes = pairs.map(pair => {
+      return {
+        address: pair.id,
+        votePercent: "0"
+      }
+    });
 
     const totalVotes = voteCounts.reduce((curr, acc) => {
       const num = BigNumber(acc).gt(0)
@@ -225,9 +239,10 @@ const getVestVotesOnChain = async (
       const num = vote.gt(0)
         ? vote
         : vote.times(-1)
-      votes.push({
-        address: filteredPairs[i].address,
-        votePercent: num.div(totalVotes).times(100).toString(),
+
+      votes.filter(v => v.address.toLowerCase() === filteredPairs[i].address.toLowerCase()).map(v => {
+        v.votePercent = num.div(totalVotes).times(100).toString()
+        return v;
       });
     }
     emitter.emit(ACTIONS.VEST_VOTES_RETURNED, votes);

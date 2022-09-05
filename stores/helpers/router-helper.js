@@ -79,7 +79,7 @@ export const quoteRemoveLiquidity = async (
       CONTRACTS.ROUTER_ADDRESS
     );
 
-    const sendWithdrawAmount = formatBN(withdrawAmount, pair.decimals);
+    const sendWithdrawAmount = parseBN(withdrawAmount, pair.decimals);
 
     const res = await routerContract.methods
       .quoteRemoveLiquidity(
