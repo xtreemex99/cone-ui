@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import {callContractWait} from "./web3-helper";
-import {ACTIONS, CONTRACTS} from "./../constants";
+import {ACTIONS, CONTRACTS, MAX_UINT256} from "./../constants";
 import {getTXUUID, parseBN} from '../../utils';
 import {getTokenAllowance} from "./token-helper";
 
@@ -36,9 +36,10 @@ export const createBribe = async (
         },
       ],
     });
-
+    console.log('gauge', gauge)
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    const allowance = await getTokenAllowance(web3, asset, account, gauge);
+    const allowance = await getTokenAllowance(web3, asset, account, gauge.gauge.bribeAddress);
+    console.log('allowance', BigNumber(allowance).toString());
 
     if (BigNumber(allowance).lt(amount)) {
       emitter.emit(ACTIONS.TX_STATUS, {
@@ -53,6 +54,8 @@ export const createBribe = async (
       });
     }
 
+    const allowanceCallsPromises = [];
+
     // SUBMIT REQUIRED ALLOWANCE TRANSACTIONS
     if (BigNumber(allowance).lt(amount)) {
       const tokenContract = new web3.eth.Contract(
@@ -60,25 +63,34 @@ export const createBribe = async (
         asset.address
       );
 
-      await callContractWait(
-        web3,
-        tokenContract,
-        "approve",
-        [gauge.gauge.bribeAddress, MAX_UINT256],
-        account,
-        gasPrice,
-        null,
-        null,
-        allowanceTXID,
-        emitter,
-        dispatcher,
-        (err) => {
-          if (err) {
-            return emitter.emit(ACTIONS.ERROR, err);
+      const tokenPromise = new Promise((resolve, reject) => {
+        callContractWait(
+          web3,
+          tokenContract,
+          "approve",
+          [gauge.gauge.bribeAddress, MAX_UINT256],
+          account,
+          gasPrice,
+          null,
+          null,
+          allowanceTXID,
+          emitter,
+          dispatcher,
+          (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            resolve();
           }
-        }
-      );
+        );
+      });
+
+      allowanceCallsPromises.push(tokenPromise);
     }
+
+    await Promise.all(allowanceCallsPromises);
 
     // SUBMIT BRIBE TRANSACTION
     const bribeContract = new web3.eth.Contract(

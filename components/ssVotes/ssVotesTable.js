@@ -812,7 +812,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
     let newSliderValues = [...sliderValues];
 
     newSliderValues = newSliderValues.map((val) => {
-      if (asset?.address === val.address) {
+      if (asset?.address?.toLowerCase() === val?.address?.toLowerCase()) {
         val.value = value;
       }
       return val;

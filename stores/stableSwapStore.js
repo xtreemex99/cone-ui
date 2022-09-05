@@ -1,10 +1,8 @@
-import {ACTIONS, CONTRACTS, MAX_UINT256, QUERIES, ROUTE_ASSETS} from "./constants";
-import {v4 as uuidv4} from "uuid";
+import {ACTIONS, CONTRACTS, ROUTE_ASSETS} from "./constants";
 import {formatBN, removeDuplicate} from "../utils";
 import stores from "./";
 
 import BigNumber from "bignumber.js";
-import {createClient} from "urql";
 import router from "next/router";
 import {getNftById, getVeApr, loadNfts, updateVestNFTByID} from "./helpers/ve-helper";
 import {enrichPairInfo, getAndUpdatePair, getPairs, loadPair} from "./helpers/pair-helper";
@@ -32,8 +30,6 @@ import {
   getRewardBalances
 } from "./helpers/reward-helper";
 import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
-
-const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
 class Store {
   constructor(dispatcher, emitter) {
@@ -185,10 +181,10 @@ class Store {
       }
     });
 
-    await this.refreshPairs()
     this.setStore({veToken: await this._getVeTokenBase()});
-    this.setStore({baseAssets: await getBaseAssets()});
     this.setStore({routeAssets: ROUTE_ASSETS});
+    this.setStore({baseAssets: await getBaseAssets()});
+    await this.refreshPairs()
     await this.getBalances();
     await this.getVestNFTs();
 
@@ -240,11 +236,6 @@ class Store {
     return nfts;
   };
 
-  _updateVestNFTByID = async (id) => {
-    this.setStore({vestNFTs: await updateVestNFTByID(id, this.getStore("vestNFTs"), this.getWeb3(), this.getStore("govToken"))});
-    this.emitter.emit(ACTIONS.UPDATED);
-  };
-
   getPairByAddress = async (pairAddress) => {
     const pairs = this.getStore("pairs");
     const pair = await getAndUpdatePair(pairAddress, await this.getWeb3(), this.getAccount(), pairs);
@@ -257,6 +248,31 @@ class Store {
     const pair = await loadPair(addressA, addressB, stab, await this.getWeb3(), this.getAccount(), pairs, this.getStore("baseAssets"))
     this.setStore({pairs: pairs ?? []});
     return pair;
+  };
+
+  _getPairInfo = async (web3, account, overridePairs) => {
+    let pairs;
+    if (overridePairs) {
+      pairs = overridePairs;
+    } else {
+      pairs = this.getStore("pairs");
+    }
+    pairs = await enrichPairInfo(web3, account, pairs, await stores.accountStore.getMulticall(), this.getStore("baseAssets"));
+    await enrichBoostedApr(pairs)
+    this.setStore({pairs: pairs ?? []});
+    this.emitter.emit(ACTIONS.UPDATED);
+  };
+
+  refreshPairs = async () => {
+    let pairs = await getPairs();
+    pairs = await enrichPairInfo(
+      await this.getWeb3(),
+      this.getAccount(),
+      pairs,
+      await stores.accountStore.getMulticall(),
+      this.getStore("baseAssets")
+    );
+    this.setStore({pairs: pairs});
   };
 
   removeBaseAsset = (asset) => {
@@ -285,10 +301,6 @@ class Store {
       console.log("Get base asset error", ex);
       return null;
     }
-  };
-
-  refreshPairs = async () => {
-    this.setStore({pairs: await getPairs()});
   };
 
   _getVeTokenBase = async () => {
@@ -324,19 +336,6 @@ class Store {
     }
   };
 
-  _getPairInfo = async (web3, account, overridePairs) => {
-    let pairs;
-    if (overridePairs) {
-      pairs = overridePairs;
-    } else {
-      pairs = this.getStore("pairs");
-    }
-    pairs = await enrichPairInfo(web3, account, pairs, await stores.accountStore.getMulticall(), this.getStore("baseAssets"));
-    await enrichBoostedApr(pairs)
-    this.setStore({pairs: pairs ?? []});
-    this.emitter.emit(ACTIONS.UPDATED);
-  };
-
   _getBaseAssetInfo = async (web3, account) => {
     const baseAssets = this.getStore("baseAssets");
     await getBalancesForBaseAssets(web3, account, baseAssets, await stores.accountStore.getMulticall())
@@ -361,24 +360,6 @@ class Store {
       true,
       async () => await this.refreshPairs()
     );
-  };
-
-  // todo remove
-  updatePairsCall = async (web3, account) => {
-    try {
-      const response = await client.query(QUERIES.pairsQuery).toPromise();
-      const pairsCall = response;
-      this.setStore({pairs: pairsCall.data.pairs});
-
-      await this._getPairInfo(web3, account, pairsCall.data.pairs);
-    } catch (ex) {
-      console.log(ex);
-    }
-  };
-
-  //todo remove
-  getTXUUID = () => {
-    return uuidv4();
   };
 
   addLiquidity = async (payload) => {
