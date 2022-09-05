@@ -1,12 +1,29 @@
 import BigNumber from "bignumber.js";
+import {v4 as uuidv4} from "uuid";
 
-// todo: get navigator declared somehow? probably an issue with using nextjs
-// function getLang() {
-//  if (window.navigator.languages != undefined)
-//   return window.navigator.languages[0];
-//  else
-//   return window.navigator.language;
-// }
+export const getTXUUID = () => {
+  return uuidv4();
+};
+
+export function formatBN(num, decimals = '18') {
+  if(!num) {
+    return "0";
+  }
+  return BigNumber(num)
+    .div(BigNumber(10).pow(BigNumber(parseInt(decimals))))
+    .toFixed(parseInt(decimals));
+}
+
+export function parseBN(num, decimals = '18') {
+  if(!num) {
+    // parse function pretty critical coz using in contract calls
+    // better to throw an error
+    throw new Error("Invalid bn");
+  }
+  return BigNumber(num)
+    .times(BigNumber(10).pow(BigNumber(parseInt(decimals))))
+    .toFixed(0);
+}
 
 export function formatCurrency(amount, decimals = 2) {
   if (!isNaN(amount)) {
@@ -110,8 +127,8 @@ export function multiplyArray(numbers) {
 
 export const formatSymbol = (symbol) => {
   if (typeof symbol !== "string") return symbol;
-  if (symbol.includes("sAMM")) return symbol.replace("sAMM-", "");
-  if (symbol.includes("vAMM")) return symbol.replace("vAMM-", "");
+  if (symbol.includes("sAMM")) return symbol.replace("sAMM-", "s-");
+  if (symbol.includes("vAMM")) return symbol.replace("vAMM-", "v-");
   return symbol;
 };
 
@@ -188,6 +205,15 @@ export const retry = ({fn, args, defaultValue}) => {
 
   return wrappedFn;
 };
+
+export const removeDuplicate = (arr) => {
+  const assets = arr.reduce((acc, item) => {
+    acc[item.symbol] = item;
+    return acc;
+  }, {});
+  return Object.values(assets);
+};
+
 
 // ROUTES
 

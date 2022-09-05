@@ -145,7 +145,6 @@ class Store {
         }
 
         this.setStore({ gasPrices: gasPrices, gasSpeed: gasSpeed });
-        this.emitter.emit(ACTIONS.GAS_PRICES_RETURNED);
     };
 
     _getGasPrices = async () => {
