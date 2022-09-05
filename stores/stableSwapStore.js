@@ -23,7 +23,15 @@ import {swap, unwrap, wrap} from "./helpers/swap-helper";
 import {createVest, increaseVestAmount, increaseVestDuration, merge, withdrawVest} from "./helpers/vest-helper";
 import {getVestVotes, resetVote, vote} from "./helpers/voter-helper";
 import {createBribe} from "./helpers/bribe-helper";
-import {getRewardBalances} from "./helpers/reward-helper";
+import {
+  claimAllRewards,
+  claimBribes,
+  claimPairFees,
+  claimRewards,
+  claimVeDist,
+  getRewardBalances
+} from "./helpers/reward-helper";
+import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
@@ -701,735 +709,92 @@ class Store {
   };
 
   claimBribes = async (payload) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-
-      const {pair, tokenID} = payload.content;
-
-      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
-      let claimTXID = this.getTXUUID();
-
-      this.emitter.emit(ACTIONS.TX_ADDED, {
-        title: `Claim rewards for ${pair.token0.symbol}/${pair.token1.symbol}`,
-        verb: "Rewards Claimed",
-        transactions: [
-          {
-            uuid: claimTXID,
-            description: `Claiming your bribes`,
-            status: "WAITING",
-          },
-        ],
-      });
-
-      const gasPrice = await stores.accountStore.getGasPrice();
-
-      // SUBMIT CLAIM TRANSACTION
-      const gaugesContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI,
-        CONTRACTS.VOTER_ADDRESS
-      );
-
-      const sendGauges = [pair.gauge.bribeAddress];
-      const sendTokens = [
-        pair.gauge.bribesEarned.map((bribe) => {
-          return bribe.address;
-        }),
-      ];
-
-      this._callContractWait(
-        web3,
-        gaugesContract,
-        "claimBribes",
-        [sendGauges, sendTokens, tokenID],
-        account,
-        gasPrice,
-        null,
-        null,
-        claimTXID,
-        async (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.getRewardBalances({content: {tokenID}});
-          this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
-        }
-      );
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
+    await claimBribes(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async (tokenID) => await this.getRewardBalances({content: {tokenID}})
+    )
   };
 
   claimAllRewards = async (payload) => {
-    try {
-      const context = this;
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-
-      const {pairs, tokenID} = payload.content;
-
-      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
-      let claimTXID = this.getTXUUID();
-      let feeClaimTXIDs = [];
-      let rewardClaimTXIDs = [];
-      let distributionClaimTXIDs = [];
-
-      let bribePairs = pairs.filter((pair) => {
-        return pair.rewardType === "Bribe";
-      });
-
-      let feePairs = pairs.filter((pair) => {
-        return pair.rewardType === "Fees";
-      });
-
-      let rewardPairs = pairs.filter((pair) => {
-        return pair.rewardType === "Reward";
-      });
-
-      let distribution = pairs.filter((pair) => {
-        return pair.rewardType === "Distribution";
-      });
-
-      const sendGauges = bribePairs.map((pair) => {
-        return pair.gauge.bribeAddress;
-      });
-      const sendTokens = bribePairs.map((pair) => {
-        return pair.gauge.bribesEarned.map((bribe) => {
-          return bribe.address;
-        });
-      });
-
-      if (
-        bribePairs.length == 0 &&
-        feePairs.length == 0 &&
-        rewardPairs.length == 0
-      ) {
-        this.emitter.emit(ACTIONS.ERROR, "Nothing to claim");
-        this.emitter.emit(ACTIONS.CLAIM_ALL_REWARDS_RETURNED);
-        return;
-      }
-
-      let sendOBJ = {
-        title: `Claim all rewards`,
-        verb: "Rewards Claimed",
-        transactions: [],
-      };
-
-      if (bribePairs.length > 0) {
-        sendOBJ.transactions.push({
-          uuid: claimTXID,
-          description: `Claiming all your available bribes`,
-          status: "WAITING",
-        });
-      }
-
-      if (feePairs.length > 0) {
-        for (let i = 0; i < feePairs.length; i++) {
-          const newClaimTX = this.getTXUUID();
-
-          feeClaimTXIDs.push(newClaimTX);
-          sendOBJ.transactions.push({
-            uuid: newClaimTX,
-            description: `Claiming fees for ${feePairs[i].symbol}`,
-            status: "WAITING",
-          });
-        }
-      }
-
-      if (rewardPairs.length > 0) {
-        for (let i = 0; i < rewardPairs.length; i++) {
-          const newClaimTX = this.getTXUUID();
-
-          rewardClaimTXIDs.push(newClaimTX);
-          sendOBJ.transactions.push({
-            uuid: newClaimTX,
-            description: `Claiming reward for ${rewardPairs[i].symbol}`,
-            status: "WAITING",
-          });
-        }
-      }
-
-      if (distribution.length > 0) {
-        for (let i = 0; i < distribution.length; i++) {
-          const newClaimTX = this.getTXUUID();
-
-          distributionClaimTXIDs.push(newClaimTX);
-          sendOBJ.transactions.push({
-            uuid: newClaimTX,
-            description: `Claiming distribution for NFT #${distribution[i].token.id}`,
-            status: "WAITING",
-          });
-        }
-      }
-
-      this.emitter.emit(ACTIONS.TX_ADDED, sendOBJ);
-
-      const gasPrice = await stores.accountStore.getGasPrice();
-
-      if (bribePairs.length > 0) {
-        // SUBMIT CLAIM TRANSACTION
-        const gaugesContract = new web3.eth.Contract(
-          CONTRACTS.VOTER_ABI,
-          CONTRACTS.VOTER_ADDRESS
-        );
-
-        const claimPromise = new Promise((resolve, reject) => {
-          context._callContractWait(
-            web3,
-            gaugesContract,
-            "claimBribes",
-            [sendGauges, sendTokens, tokenID],
-            account,
-            gasPrice,
-            null,
-            null,
-            claimTXID,
-            (err) => {
-              if (err) {
-                reject(err);
-                return;
-              }
-
-              resolve();
-            }
-          );
-        });
-
-        await Promise.all([claimPromise]);
-      }
-
-      if (feePairs.length > 0) {
-        for (let i = 0; i < feePairs.length; i++) {
-          const pairContract = new web3.eth.Contract(
-            CONTRACTS.PAIR_ABI,
-            feePairs[i].address
-          );
-
-          const claimPromise = new Promise((resolve, reject) => {
-            context._callContractWait(
-              web3,
-              pairContract,
-              "claimFees",
-              [],
-              account,
-              gasPrice,
-              null,
-              null,
-              feeClaimTXIDs[i],
-              (err) => {
-                if (err) {
-                  reject(err);
-                  return;
-                }
-
-                resolve();
-              }
-            );
-          });
-
-          await Promise.all([claimPromise]);
-        }
-      }
-
-      if (rewardPairs.length > 0) {
-        for (let i = 0; i < rewardPairs.length; i++) {
-          const gaugeContract = new web3.eth.Contract(
-            CONTRACTS.GAUGE_ABI,
-            rewardPairs[i].gauge.address
-          );
-          const sendTok = [CONTRACTS.GOV_TOKEN_ADDRESS];
-
-          const rewardPromise = new Promise((resolve, reject) => {
-            context._callContractWait(
-              web3,
-              gaugeContract,
-              "getReward",
-              [account.address, sendTok],
-              account,
-              gasPrice,
-              null,
-              null,
-              rewardClaimTXIDs[i],
-              (err) => {
-                if (err) {
-                  reject(err);
-                  return;
-                }
-
-                resolve();
-              }
-            );
-          });
-
-          await Promise.all([rewardPromise]);
-        }
-      }
-
-      if (distribution.length > 0) {
-        const veDistContract = new web3.eth.Contract(
-          CONTRACTS.VE_DIST_ABI,
-          CONTRACTS.VE_DIST_ADDRESS
-        );
-        for (let i = 0; i < distribution.length; i++) {
-          const rewardPromise = new Promise((resolve, reject) => {
-            context._callContractWait(
-              web3,
-              veDistContract,
-              "claim",
-              [tokenID],
-              account,
-              gasPrice,
-              null,
-              null,
-              distributionClaimTXIDs[i],
-              (err) => {
-                if (err) {
-                  reject(err);
-                  return;
-                }
-
-                resolve();
-              }
-            );
-          });
-
-          await Promise.all([rewardPromise]);
-        }
-      }
-
-      this.getRewardBalances({content: {tokenID}});
-      this.emitter.emit(ACTIONS.CLAIM_ALL_REWARDS_RETURNED);
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
+    await claimAllRewards(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async (tokenID) => await this.getRewardBalances({content: {tokenID}})
+    )
   };
 
   claimRewards = async (payload) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-
-      const {pair, tokenID} = payload.content;
-
-      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
-      let claimTXID = this.getTXUUID();
-
-      this.emitter.emit(ACTIONS.TX_ADDED, {
-        title: `Claim rewards for ${pair.token0.symbol}/${pair.token1.symbol}`,
-        verb: "Rewards Claimed",
-        transactions: [
-          {
-            uuid: claimTXID,
-            description: `Claiming your rewards`,
-            status: "WAITING",
-          },
-        ],
-      });
-
-      const gasPrice = await stores.accountStore.getGasPrice();
-
-      // SUBMIT CLAIM TRANSACTION
-      const gaugeContract = new web3.eth.Contract(
-        CONTRACTS.GAUGE_ABI,
-        pair.gauge.address
-      );
-
-      const sendTokens = [CONTRACTS.GOV_TOKEN_ADDRESS];
-
-      this._callContractWait(
-        web3,
-        gaugeContract,
-        "getReward",
-        [account.address, sendTokens],
-        account,
-        gasPrice,
-        null,
-        null,
-        claimTXID,
-        async (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.getRewardBalances({content: {tokenID}});
-          this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
-        }
-      );
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
+    await claimRewards(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async (tokenID) => await this.getRewardBalances({content: {tokenID}})
+    )
   };
 
   claimVeDist = async (payload) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-
-      const {tokenID} = payload.content;
-
-      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
-      let claimTXID = this.getTXUUID();
-
-      this.emitter.emit(ACTIONS.TX_ADDED, {
-        title: `Claim distribution for NFT #${tokenID}`,
-        verb: "Rewards Claimed",
-        transactions: [
-          {
-            uuid: claimTXID,
-            description: `Claiming your distribution`,
-            status: "WAITING",
-          },
-        ],
-      });
-
-      const gasPrice = await stores.accountStore.getGasPrice();
-
-      // SUBMIT CLAIM TRANSACTION
-      const veDistContract = new web3.eth.Contract(
-        CONTRACTS.VE_DIST_ABI,
-        CONTRACTS.VE_DIST_ADDRESS
-      );
-
-      this._callContractWait(
-        web3,
-        veDistContract,
-        "claim",
-        [tokenID],
-        account,
-        gasPrice,
-        null,
-        null,
-        claimTXID,
-        async (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.getRewardBalances({content: {tokenID}});
-          this.emitter.emit(ACTIONS.CLAIM_VE_DIST_RETURNED);
-        }
-      );
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
+    await claimVeDist(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async (tokenID) => await this.getRewardBalances({content: {tokenID}})
+    )
   };
 
   claimPairFees = async (payload) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-
-      const {pair, tokenID} = payload.content;
-
-      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
-      let claimTXID = this.getTXUUID();
-
-      this.emitter.emit(ACTIONS.TX_ADDED, {
-        title: `Claim fees for ${pair.token0.symbol}/${pair.token1.symbol}`,
-        verb: "Fees Claimed",
-        transactions: [
-          {
-            uuid: claimTXID,
-            description: `Claiming your fees`,
-            status: "WAITING",
-          },
-        ],
-      });
-
-      const gasPrice = await stores.accountStore.getGasPrice();
-
-      // SUBMIT CLAIM TRANSACTION
-      const pairContract = new web3.eth.Contract(
-        CONTRACTS.PAIR_ABI,
-        pair.address
-      );
-
-      this._callContractWait(
-        web3,
-        pairContract,
-        "claimFees",
-        [],
-        account,
-        gasPrice,
-        null,
-        null,
-        claimTXID,
-        async (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          this.getRewardBalances({content: {tokenID}});
-          this.emitter.emit(ACTIONS.CLAIM_REWARD_RETURNED);
-        }
-      );
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
+    await claimPairFees(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async (tokenID) => await this.getRewardBalances({content: {tokenID}})
+    )
   };
 
   searchWhitelist = async (payload) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-      const veToken = this.getStore("veToken");
-
-      const {search} = payload.content;
-
-      const voterContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI,
-        CONTRACTS.VOTER_ADDRESS
-      );
-
-      const [isWhitelisted, listingFee] = await Promise.all([
-        voterContract.methods.isWhitelisted(search).call(),
-        voterContract.methods.listingFee().call(),
-      ]);
-
-      const token = await this.getBaseAsset(search);
-      token.isWhitelisted = isWhitelisted;
-      token.listingFee = BigNumber(listingFee)
-        .div(10 ** 18)
-        .toFixed(18);
-
-      this.emitter.emit(ACTIONS.SEARCH_WHITELIST_RETURNED, token);
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
+    await searchWhitelist(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      async (search) => await this.getBaseAsset(search)
+    );
   };
 
   whitelistToken = async (payload) => {
-    try {
-      const account = stores.accountStore.getStore("account");
-      if (!account) {
-        console.warn("account not found");
-        return null;
-      }
-
-      const web3 = await stores.accountStore.getWeb3Provider();
-      if (!web3) {
-        console.warn("web3 not found");
-        return null;
-      }
-
-      const {token, nft} = payload.content;
-
-      // ADD TRNASCTIONS TO TRANSACTION QUEUE DISPLAY
-      let whitelistTXID = this.getTXUUID();
-
-      this.emitter.emit(ACTIONS.TX_ADDED, {
-        title: `WHITELIST ${token.symbol}`,
-        verb: "Token Whitelisted",
-        transactions: [
-          {
-            uuid: whitelistTXID,
-            description: `Whitelisting ${token.symbol}`,
-            status: "WAITING",
-          },
-        ],
-      });
-
-      const gasPrice = await stores.accountStore.getGasPrice();
-
-      // SUBMIT WHITELIST TRANSACTION
-      const voterContract = new web3.eth.Contract(
-        CONTRACTS.VOTER_ABI,
-        CONTRACTS.VOTER_ADDRESS
-      );
-
-      this._callContractWait(
-        web3,
-        voterContract,
-        "whitelist",
-        [token.address, nft.id],
-        account,
-        gasPrice,
-        null,
-        null,
-        whitelistTXID,
-        async (err) => {
-          if (err) {
-            return this.emitter.emit(ACTIONS.ERROR, err);
-          }
-
-          window.setTimeout(() => {
-            this.dispatcher.dispatch({
-              type: ACTIONS.SEARCH_WHITELIST,
-              content: {search: token.address},
-            });
-          }, 2);
-
-          this.emitter.emit(ACTIONS.WHITELIST_TOKEN_RETURNED);
-        }
-      );
-    } catch (ex) {
-      console.error(ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
-  };
-
-  _callContractWait = (
-    web3,
-    contract,
-    method,
-    params,
-    account,
-    gasPrice,
-    dispatchEvent,
-    dispatchContent,
-    uuid,
-    callback,
-    paddGasCost,
-    sendValue = null
-  ) => {
-    // console.log(method)
-    // console.log(params)
-    // if(sendValue) {
-    //   console.log(sendValue)
-    // }
-    // console.log(uuid)
-    //estimate gas
-    this.emitter.emit(ACTIONS.TX_PENDING, {uuid});
-
-    const gasCost = contract.methods[method](...params)
-      .estimateGas({from: account.address, value: sendValue})
-      .then((gasAmount) => {
-        const context = this;
-
-        let sendGasAmount = BigNumber(gasAmount).times(1.5).toFixed(0);
-        let sendGasPrice = BigNumber(gasPrice).toFixed(0);
-        // if (paddGasCost) {
-        //   sendGasAmount = BigNumber(sendGasAmount).times(1.15).toFixed(0)
-        // }
-        //
-        // const sendGasAmount = '3000000'
-        // const context = this
-        //
-        contract.methods[method](...params)
-          .send({
-            from: account.address,
-            gasPrice: web3.utils.toWei(sendGasPrice, "gwei"),
-            gas: sendGasAmount,
-            value: sendValue,
-            // maxFeePerGas: web3.utils.toWei(gasPrice, "gwei"),
-            // maxPriorityFeePerGas: web3.utils.toWei("2", "gwei"),
-          })
-          .on("transactionHash", function (txHash) {
-            context.emitter.emit(ACTIONS.TX_SUBMITTED, {uuid, txHash});
-          })
-          .on("receipt", function (receipt) {
-            context.emitter.emit(ACTIONS.TX_CONFIRMED, {
-              uuid,
-              txHash: receipt.transactionHash,
-            });
-            callback(null, receipt.transactionHash);
-            if (dispatchEvent) {
-              context.dispatcher.dispatch({
-                type: dispatchEvent,
-                content: dispatchContent,
-              });
-            }
-          })
-          .on("error", function (error) {
-            if (!error.toString().includes("-32601")) {
-              if (error.message) {
-                context.emitter.emit(ACTIONS.TX_REJECTED, {
-                  uuid,
-                  error: error.message,
-                });
-                return callback(error.message);
-              }
-              context.emitter.emit(ACTIONS.TX_REJECTED, {uuid, error: error});
-              callback(error);
-            }
-          })
-          .catch((error) => {
-            if (!error.toString().includes("-32601")) {
-              if (error.message) {
-                context.emitter.emit(ACTIONS.TX_REJECTED, {
-                  uuid,
-                  error: error.message,
-                });
-                return callback(error.message);
-              }
-              context.emitter.emit(ACTIONS.TX_REJECTED, {uuid, error: error});
-              callback(error);
-            }
+    await whitelistToken(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async (dispatcher, token) => {
+        window.setTimeout(() => {
+          dispatcher.dispatch({
+            type: ACTIONS.SEARCH_WHITELIST,
+            content: {search: token.address},
           });
-      })
-      .catch((ex) => {
-        console.log(ex);
-        if (ex.message) {
-          this.emitter.emit(ACTIONS.TX_REJECTED, {uuid, error: ex.message});
-          return callback(ex.message);
-        }
-        this.emitter.emit(ACTIONS.TX_REJECTED, {
-          uuid,
-          error: "Error estimating gas",
-        });
-        callback(ex);
-      });
+        }, 2);
+      }
+    )
   };
 }
 
