@@ -76,7 +76,6 @@ async function connect() {
   const supportedChainIds = [process.env.NEXT_PUBLIC_CHAINID];
   const isChainSupported = supportedChainIds.includes(String(chainId));
   stores.accountStore.setStore({chainInvalid: !isChainSupported});
-  console.log("SET ACCOUNT", 'wallet con', address)
   stores.accountStore.setStore({
     account: address,
     web3provider: web3,

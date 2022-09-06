@@ -107,6 +107,12 @@ export const callContractWait = (
     });
 };
 
+export function excludeErrors(error) {
+  const msg = error?.message;
+  return !msg?.includes("-32601")
+    && !msg?.includes("User denied transaction signature")
+}
+
 function parseRpcError(error) {
   return error.reason ? error.reason : error;
 }
