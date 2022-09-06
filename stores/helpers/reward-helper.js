@@ -74,7 +74,7 @@ async function collectBribeRewards(tokenID, userInfo, web3, baseAssets) {
     return [];
   }
   let tokenIdAdr = null;
-  const bribes = userInfo?.nfts?.filter(nft => parseInt(nft.id) === parseInt(tokenID))[0]?.bribes;
+  const bribes = userInfo?.nfts?.filter(nft => parseInt(nft.id) === parseInt(tokenID))[0]?.bribes ?? [];
   const result = [];
 
 

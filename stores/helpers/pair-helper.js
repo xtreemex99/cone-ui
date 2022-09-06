@@ -415,7 +415,7 @@ export async function loadUserInfoFromSubgraph(userAddress) {
   if (!!resp.error) {
     console.log("User query error", resp.error);
   } else {
-    // console.log('User query', resp.data.user)
+    // console.log('User query', userAddress, resp.data.user)
   }
   return resp.data.user;
 }
@@ -429,7 +429,6 @@ export function enrichPositionInfoToPairs(pairs, userInfo) {
 
 async function fetchBalancesForPairs(
   pairs,
-  userInfo,
   multicall,
   web3,
   userAddress
@@ -526,7 +525,6 @@ export const enrichPairInfo = async (
 
     await fetchBalancesForPairs(
       pairs,
-      userInfo,
       multicall,
       web3,
       userAddress

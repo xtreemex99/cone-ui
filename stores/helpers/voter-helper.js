@@ -158,14 +158,15 @@ const getVestVotesSubgraph = async (
   emitter,
   pairs
 ) => {
+  const userAddress = account?.address;
   const {tokenID} = payload.content;
-  if (!tokenID) {
+  if (!tokenID || !userAddress) {
     return [];
   }
 
   try {
-    const userInfo = await loadUserInfoFromSubgraph(account.address)
-    const veInfo = userInfo.nfts?.filter(nft => nft.id === tokenID)[0]
+    const userInfo = await loadUserInfoFromSubgraph(userAddress)
+    const veInfo = userInfo?.nfts?.filter(nft => nft.id === tokenID)[0]
     let votes = pairs.map(pair => {
       return {
         address: pair.id,
