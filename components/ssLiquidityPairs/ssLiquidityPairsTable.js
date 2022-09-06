@@ -66,13 +66,13 @@ function descendingComparator(a, b, orderBy) {
       return 0;
     case "apr":
       if (BigNumber(b?.gauge?.apr).lt(BigNumber(a?.gauge?.apr))) {
-        console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "1");
+        // console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "1");
         return -1;
       }
       if (
         BigNumber(b?.gauge?.apr).div(100).times(40).gt(BigNumber(a?.gauge?.apr))
       ) {
-        console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "2");
+        // console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "2");
         return 1;
       }
       return 0;

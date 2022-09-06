@@ -6,7 +6,9 @@ import {
   CONE_ADDRESS,
   CONTRACTS, NETWORK_TOKEN,
   QUERIES,
-  RENAME_ASSETS
+  RENAME_ASSETS,
+  WBNB_ADDRESS,
+  NETWORK_TOKEN_NAME
 } from "./../constants";
 import {formatBN, removeDuplicate} from '../../utils';
 import axios from "axios";
@@ -22,6 +24,10 @@ export function getTokenContract(web3, address) {
     CONTRACTS.ERC20_ABI,
     address
   );
+}
+
+export function isNetworkToken(tokenAdr) {
+  return tokenAdr === NETWORK_TOKEN_NAME;
 }
 
 export async function getEthPrice() {
@@ -197,7 +203,7 @@ export const getTokenAllowance = async (web3, token, account, spender) => {
     return formatBN(allowance, token.decimals);
   } catch (ex) {
     console.error("Get token allowance error", ex);
-    return null;
+    return "0";
   }
 };
 
@@ -205,54 +211,3 @@ export function enrichLogoUri(baseAssets, tokenModel) {
   const asset = baseAssets.filter(a => a.id.toLowerCase() === tokenModel.id.toLowerCase())[0]
   tokenModel.logoURI = asset?.logoURI;
 }
-
-// export const getLiquidityBalances = async (
-//   pair,
-//   web3,
-//   account,
-//   emitter,
-//   multicall,
-// ) => {
-//   try {
-//     if (!pair || !web3 || !account) {
-//       return;
-//     }
-//
-//     const token0Contract = getTokenContract(web3, pair.token0.address);
-//     const token1Contract = getTokenContract(web3, pair.token1.address);
-//     const pairContract = getTokenContract(web3, pair.address);
-//
-//     const balanceCalls = [
-//       token0Contract.methods.balanceOf(account.address).call(),
-//       token1Contract.methods.balanceOf(account.address).call(),
-//       pairContract.methods.balanceOf(account.address).call(),
-//     ];
-//
-//     if (pair.gauge) {
-//       const gaugeContract = getTokenContract(web3, pair.gauge.address);
-//       balanceCalls.push(gaugeContract.methods.balanceOf(account.address).call());
-//     }
-//
-//     const [
-//       token0Balance,
-//       token1Balance,
-//       poolBalance,
-//       gaugeBalance,
-//     ] = await multicall.aggregate(balanceCalls);
-//
-//     const result = {
-//       token0: formatBN(token0Balance, pair.token0.decimals),
-//       token1: formatBN(token1Balance, pair.token1.decimals),
-//       pool: formatBN(poolBalance)
-//     };
-//
-//     if (pair.gauge) {
-//       result.gauge = gaugeBalance ? formatBN(gaugeBalance) : null;
-//     }
-//
-//     this.emitter.emit(ACTIONS.GET_LIQUIDITY_BALANCES_RETURNED, result);
-//   } catch (ex) {
-//     console.error("getLiquidityBalances error", ex);
-//     this.emitter.emit(ACTIONS.ERROR, ex);
-//   }
-// };

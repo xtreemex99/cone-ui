@@ -36,10 +36,9 @@ export const createBribe = async (
         },
       ],
     });
-    console.log('gauge', gauge)
+
     // CHECK ALLOWANCES AND SET TX DISPLAY
     const allowance = await getTokenAllowance(web3, asset, account, gauge.gauge.bribeAddress);
-    console.log('allowance', BigNumber(allowance).toString());
 
     if (BigNumber(allowance).lt(amount)) {
       emitter.emit(ACTIONS.TX_STATUS, {

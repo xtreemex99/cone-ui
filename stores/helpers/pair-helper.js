@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import {formatBN} from '../../utils';
 import {createClient} from "urql";
 import {BLACK_LIST_TOKENS, CONTRACTS, NETWORK_TOKEN_NAME, QUERIES, WBNB_ADDRESS, ZERO_ADDRESS} from "./../constants";
-import {getEthPrice, getOrCreateBaseAsset} from "./token-helper";
+import {getEthPrice, getOrCreateBaseAsset, isNetworkToken} from "./token-helper";
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
@@ -71,7 +71,6 @@ async function loadPairFromSubgraph(pairAddress) {
 
 // it is very rare case when a pair just created, use on-chain info for the most fresh data
 async function loadFullPairInfo(pairAddress, web3, account, baseAssets) {
-  console.log('loadFullPairInfo', pairAddress, account);
   const pairContract = getPairContract(web3, pairAddress);
   const gaugesContract = getVoterContract(web3);
 
@@ -267,10 +266,10 @@ export const loadPair = async (
   if (!account || !web3) {
     return null;
   }
-  if (addressA === NETWORK_TOKEN_NAME) {
+  if (isNetworkToken(addressA)) {
     addressA = WBNB_ADDRESS;
   }
-  if (addressB === NETWORK_TOKEN_NAME) {
+  if (isNetworkToken(addressB)) {
     addressB = WBNB_ADDRESS;
   }
 
