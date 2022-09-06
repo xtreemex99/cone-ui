@@ -70,10 +70,7 @@ export const createVest = async (
 
     // SUBMIT REQUIRED ALLOWANCE TRANSACTIONS
     if (BigNumber(allowance).lt(amount)) {
-      const tokenContract = new web3.eth.Contract(
-        CONTRACTS.ERC20_ABI,
-        govToken.address
-      );
+      const tokenContract = new web3.eth.Contract(CONTRACTS.ERC20_ABI, govToken.address);
 
       await Promise.all([
         new Promise((resolve, reject) => {
@@ -106,7 +103,7 @@ export const createVest = async (
     // SUBMIT VEST TRANSACTION
     const sendAmount = parseBN(amount, govToken.decimals);
 
-    const veTokenContract = getVeContract();
+    const veTokenContract = getVeContract(web3);
 
     await callContractWait(
       web3,
@@ -118,6 +115,8 @@ export const createVest = async (
       null,
       null,
       vestTXID,
+      emitter,
+      dispatcher,
       async (err) => {
         if (err) {
           return emitter.emit(ACTIONS.ERROR, err);
@@ -537,7 +536,7 @@ export const merge = async (
     });
 
     let isApproved = await veContract.methods
-      .isApprovedForAll(account.address, CONTRACTS.VE_TOKEN_ADDRESS)
+      .isApprovedForAll(account, CONTRACTS.VE_TOKEN_ADDRESS)
       .call();
 
     if (!isApproved) {

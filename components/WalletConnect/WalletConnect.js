@@ -76,9 +76,9 @@ async function connect() {
   const supportedChainIds = [process.env.NEXT_PUBLIC_CHAINID];
   const isChainSupported = supportedChainIds.includes(String(chainId));
   stores.accountStore.setStore({chainInvalid: !isChainSupported});
-
+  console.log("SET ACCOUNT", 'wallet con', address)
   stores.accountStore.setStore({
-    account: {address},
+    account: address,
     web3provider: web3,
     web3modal,
     web3context: {
@@ -89,6 +89,8 @@ async function connect() {
     },
   });
 
+  // need to load only once when the app was opened
+  // other updates should come from account/network changes
   if (!loaded) {
     updateGeneralStore();
     loaded = true;

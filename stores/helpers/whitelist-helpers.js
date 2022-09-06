@@ -7,7 +7,6 @@ import BigNumber from "bignumber.js";
 
 export const searchWhitelist = async (
   payload,
-  account,
   web3,
   emitter,
   getBaseAssetCall

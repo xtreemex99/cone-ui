@@ -28,7 +28,7 @@ export const callContractWait = (
   emitter.emit(ACTIONS.TX_PENDING, {uuid});
 
   const gasCost = contract.methods[method](...params)
-    .estimateGas({from: account.address, value: sendValue})
+    .estimateGas({from: account, value: sendValue})
     .then((gasAmount) => {
       const context = this;
 
@@ -43,7 +43,7 @@ export const callContractWait = (
       //
       contract.methods[method](...params)
         .send({
-          from: account.address,
+          from: account,
           gasPrice: web3.utils.toWei(sendGasPrice, "gwei"),
           gas: sendGasAmount,
           value: sendValue,

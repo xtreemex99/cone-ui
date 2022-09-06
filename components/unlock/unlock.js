@@ -134,12 +134,6 @@ class Unlock extends Component {
   }
 }
 
-function getLibrary(provider) {
-  const library = new Web3Provider(provider);
-  library.pollingInterval = 8000;
-  return library;
-}
-
 async function onConnectionClicked(
   currentConnector,
   name,
@@ -163,17 +157,6 @@ async function onConnectionClicked(
     activate(connectorsByName[name]);
     localStorage.setItem("isWalletConnected", false);
   }
-}
-
-function onDeactivateClicked(deactivate, connector) {
-  if (deactivate) {
-    deactivate();
-  }
-  if (connector && connector.close) {
-    connector.close();
-  }
-  stores.accountStore.setStore({ account: {}, web3context: null });
-  stores.emitter.emit(CONNECTION_DISCONNECTED);
 }
 
 function MyComponent(props) {
@@ -200,10 +183,6 @@ function MyComponent(props) {
 
   React.useEffect(() => {
     if (account && active && library) {
-      stores.accountStore.setStore({
-        account: { address: account },
-        web3context: context,
-      });
       stores.emitter.emit(CONNECTION_CONNECTED);
       stores.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
     }

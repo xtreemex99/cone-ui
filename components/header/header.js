@@ -103,7 +103,7 @@ function Header(props) {
       const accountStore = stores.accountStore.getStore("account");
       const bb = stores.stableSwapStore.getStore("baseAssets");
       if (accountStore) {
-        web(accountStore.address);
+        web(accountStore);
       }
       setAccount(accountStore);
       closeUnlock();
@@ -310,7 +310,7 @@ function Header(props) {
             <img src="/images/ui/network.png" />
           </div>
 
-          {account && account.address ? (
+          {account? (
             <div className={classes.accountButtonContainer}>
               <Button
                 disableElevation
@@ -325,7 +325,7 @@ function Header(props) {
               >
                 <div
                   className={[classes.accountButtonAddress, classes[`accountButtonAddress--${appTheme}`], 'g-flex', 'g-flex--align-center'].join(' ')}>
-                  {account && account.address && (
+                  {account&& (
                     <>
                       <div
                         className={`${classes.accountIcon} ${web3ModalStore?.cachedProvider === 'walletconnect' ? 
@@ -347,13 +347,13 @@ function Header(props) {
                   )}
                   <Typography className={classes.headBtnTxt}>
                     <span className={classes.headBtnTxtDesktop}>
-                      {account && account.address
-                        ? formatAddress(account.address)
+                      {account
+                        ? formatAddress(account)
                         : "Connect Wallet"}
                     </span>
                     <span className={classes.headBtnTxtMobile}>
-                      {account && account.address
-                        ? formatAddress(account.address, "shortest")
+                      {account
+                        ? formatAddress(account, "shortest")
                         : "Connect Wallet"}
                     </span>
                   </Typography>

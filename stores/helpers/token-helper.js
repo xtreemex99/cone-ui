@@ -28,17 +28,14 @@ export async function getEthPrice() {
   return parseFloat((await client.query(QUERIES.bundleQuery).toPromise()).data.bundle.ethPrice);
 }
 
-export async function getTokenBalance(token, web3, account, decimals) {
-  const adr = account?.address;
-  if (!token || !web3 || !adr) {
+export async function getTokenBalance(tokenAdr, web3, accountAdr, decimals) {
+  if (!tokenAdr || !web3 || !accountAdr) {
     return "0";
   }
   try {
-    return formatBN(await getTokenContract(web3, token).methods
-      .balanceOf(adr)
-      .call(), decimals);
+    return formatBN(await getTokenContract(web3, tokenAdr).methods.balanceOf(accountAdr).call(), decimals);
   } catch (e) {
-    console.log("Error get balance", token, adr, e)
+    console.log("Error get balance", tokenAdr, accountAdr, e)
     return "0";
   }
 }
@@ -164,11 +161,11 @@ export const getBalancesForBaseAssets = async (web3, account, baseAssets, multic
     for (let i = 0; i < baseAssets.length; i++) {
       const asset = baseAssets[i];
       if (asset.address === "BNB") {
-        asset.balance = formatBN(await web3.eth.getBalance(account.address));
+        asset.balance = formatBN(await web3.eth.getBalance(account));
         continue;
       }
 
-      batch.push(getTokenContract(web3, asset.address).methods.balanceOf(account.address))
+      batch.push(getTokenContract(web3, asset.address).methods.balanceOf(account))
       tokens.push(asset.address)
       if (batch.length > 30) {
         const results = await multicall.aggregate(batch);
@@ -195,7 +192,7 @@ export const getTokenAllowance = async (web3, token, account, spender) => {
   try {
     const tokenContract = getTokenContract(web3, token.address);
     const allowance = await tokenContract.methods
-      .allowance(account.address, spender)
+      .allowance(account, spender)
       .call();
     return formatBN(allowance, token.decimals);
   } catch (ex) {

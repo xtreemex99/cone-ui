@@ -37,7 +37,7 @@ export const NotConnect = (props) => {
 
   return (
     <>
-      {account && account.address ? (
+      {account? (
         props.children
       ) : (
         <>

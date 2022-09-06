@@ -144,7 +144,7 @@ export const swap = async (
       sendFromAmount,
       sendMinAmountOut,
       quote.output.routes,
-      account.address,
+      account,
       deadline,
     ];
     let sendValue = null;
@@ -163,7 +163,7 @@ export const swap = async (
       params = [
         sendMinAmountOut,
         quote.output.routes,
-        account.address,
+        account,
         deadline,
       ];
       sendValue = sendFromAmount;
