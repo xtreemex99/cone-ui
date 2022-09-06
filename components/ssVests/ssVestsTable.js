@@ -1014,7 +1014,7 @@ export default function EnhancedTable({vestNFTs, govToken, veToken}) {
                                         {(BigNumber(row.lockEnds).lt(moment().unix()) &&
                                           BigNumber(row.lockEnds).gt(0))
                                             ? `Expired ${moment.unix(row.lockEnds).fromNow()}`
-                                            : `Expires in ${moment.unix(row.lockEnds).fromNow()}`
+                                            : `Expires ${moment.unix(row.lockEnds).fromNow()}`
                                         }
                                     {/* Expires in {moment.unix(row.lockEnds).fromNow()} */}
                                     {/* Expired {moment.unix(row.lockEnds).fromNow()} ago */}

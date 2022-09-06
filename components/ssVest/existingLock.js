@@ -1,27 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/router";
-import {
-  Paper,
-  Typography,
-  Grid,
-  IconButton,
-  Tooltip,
-  InputBase,
-  Button,
-  CircularProgress,
-} from "@mui/material";
+import React, {useEffect, useState} from "react";
+import {useRouter} from "next/router";
+import {Button, CircularProgress, IconButton, InputBase, Paper, Tooltip, Typography,} from "@mui/material";
 import classes from "./ssVest.module.css";
 import moment from "moment";
 import BigNumber from "bignumber.js";
-import { ArrowBack, ArrowBackIosNew } from "@mui/icons-material";
-import { formatCurrency, formatInputAmount } from "../../utils";
+import {ArrowBackIosNew} from "@mui/icons-material";
+import {formatCurrency, formatInputAmount} from "../../utils";
 import VestingInfo from "./vestingInfo";
-import { useAppThemeContext } from "../../ui/AppThemeProvider";
+import {useAppThemeContext} from "../../ui/AppThemeProvider";
 import stores from "../../stores";
-import { ACTIONS } from "../../stores/constants";
-import SwapIconBg from "../../ui/SwapIconBg";
-
-import { WithdrawLock } from "./withdrawLock";
+import {ACTIONS} from "../../stores/constants";
 
 export default function existingLock({ nft, govToken, veToken }) {
   const [futureNFT, setFutureNFT] = useState(null);

@@ -295,7 +295,6 @@ export const claimBribes = async (
 
     // SUBMIT CLAIM TRANSACTION
     const gaugesContract = new web3.eth.Contract(CONTRACTS.VOTER_ABI, CONTRACTS.VOTER_ADDRESS);
-    console.log(pair)
     const sendGauges = [pair.gauge.bribeAddress];
     const sendTokens = [pair.gauge.bribesEarned.map((bribe) => bribe.token.address)];
 

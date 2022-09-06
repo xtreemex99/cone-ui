@@ -1,10 +1,11 @@
 import BigNumber from "bignumber.js";
 import * as moment from "moment/moment";
-import {getTokenAllowance} from "./token-helper";
+import {getTokenAllowance, isNetworkToken} from "./token-helper";
 import {callContractWait} from "./web3-helper";
 import {v4 as uuidv4} from "uuid";
 import {ACTIONS, CONTRACTS, MAX_UINT256} from "./../constants";
 import {formatCurrency, parseBN} from '../../utils';
+import {emitNewNotifications, emitStatus, emitNotificationDone} from "./emit-helper";
 
 const getTXUUID = () => {
   return uuidv4();
@@ -27,90 +28,57 @@ export const swap = async (
     let allowanceTXID = getTXUUID();
     let swapTXID = getTXUUID();
 
-    emitter.emit(ACTIONS.TX_ADDED, {
-      title: `Swap ${fromAsset.symbol} for ${toAsset.symbol}`,
-      type: "Swap",
-      verb: "Swap Successful",
-      transactions: [
-        {
-          uuid: allowanceTXID,
-          description: `Checking your ${fromAsset.symbol} allowance`,
-          status: "WAITING",
-        },
-        {
-          uuid: swapTXID,
-          description: `Swap ${formatCurrency(fromAmount)} ${
-            fromAsset.symbol
-          } for ${toAsset.symbol}`,
-          status: "WAITING",
-        },
-      ],
-    });
+    await emitNewNotifications(emitter, [
+      {
+        uuid: allowanceTXID,
+        description: `Checking your ${fromAsset.symbol} allowance`,
+        status: "WAITING",
+      },
+      {
+        uuid: swapTXID,
+        description: `Swap ${formatCurrency(fromAmount)} ${
+          fromAsset.symbol
+        } for ${toAsset.symbol}`,
+        status: "WAITING",
+      },
+    ]);
 
     let allowance;
 
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    if (fromAsset.address !== "BNB") {
+    if (!isNetworkToken(fromAsset.address)) {
       allowance = await getTokenAllowance(web3, fromAsset, account, CONTRACTS.ROUTER_ADDRESS);
 
       if (BigNumber(allowance).lt(fromAmount)) {
-        emitter.emit(ACTIONS.TX_STATUS, {
-          uuid: allowanceTXID,
-          description: `Allow the router to spend your ${fromAsset.symbol}`,
-        });
+        await emitStatus(emitter, allowanceTXID, `Allow the router to spend your ${fromAsset.symbol}`)
       } else {
-        emitter.emit(ACTIONS.TX_STATUS, {
-          uuid: allowanceTXID,
-          description: `Allowance on ${fromAsset.symbol} sufficient`,
-          status: "DONE",
-        });
+        await emitNotificationDone(emitter, allowanceTXID, `Allowance on ${fromAsset.symbol} sufficient`)
       }
     } else {
       allowance = MAX_UINT256;
-      emitter.emit(ACTIONS.TX_STATUS, {
-        uuid: allowanceTXID,
-        description: `Allowance on ${fromAsset.symbol} sufficient`,
-        status: "DONE",
-      });
+      console.log("Allowance", allowanceTXID)
+      await emitNotificationDone(emitter, allowanceTXID, `Allowance on ${fromAsset.symbol} sufficient`)
     }
-
-    const allowanceCallsPromises = [];
 
     // SUBMIT REQUIRED ALLOWANCE TRANSACTIONS
     if (BigNumber(allowance).lt(fromAmount)) {
-      const tokenContract = new web3.eth.Contract(
-        CONTRACTS.ERC20_ABI,
-        fromAsset.address
+      const tokenContract = new web3.eth.Contract(CONTRACTS.ERC20_ABI, fromAsset.address);
+
+      await callContractWait(
+        web3,
+        tokenContract,
+        "approve",
+        [CONTRACTS.ROUTER_ADDRESS, MAX_UINT256],
+        account,
+        gasPrice,
+        null,
+        null,
+        allowanceTXID,
+        emitter,
+        dispatcher,
+        () => {}
       );
-
-      const tokenPromise = new Promise((resolve, reject) => {
-        callContractWait(
-          web3,
-          tokenContract,
-          "approve",
-          [CONTRACTS.ROUTER_ADDRESS, MAX_UINT256],
-          account,
-          gasPrice,
-          null,
-          null,
-          allowanceTXID,
-          emitter,
-          dispatcher,
-          (err) => {
-            if (err) {
-              reject(err);
-              return;
-            }
-
-            resolve();
-          }
-        );
-      });
-
-      allowanceCallsPromises.push(tokenPromise);
     }
-
-    await Promise.all(allowanceCallsPromises);
 
     // SUBMIT SWAP TRANSACTION
     let _slippage = slippage;
@@ -134,10 +102,7 @@ export const swap = async (
 
     const deadline = "" + moment().add(600, "seconds").unix();
 
-    const routerContract = new web3.eth.Contract(
-      CONTRACTS.ROUTER_ABI,
-      CONTRACTS.ROUTER_ADDRESS
-    );
+    const routerContract = new web3.eth.Contract(CONTRACTS.ROUTER_ABI, CONTRACTS.ROUTER_ADDRESS);
 
     let func = "swapExactTokensForTokens";
     let params = [
@@ -178,7 +143,7 @@ export const swap = async (
       }
     }
 
-    callContractWait(
+    await callContractWait(
       web3,
       routerContract,
       func,

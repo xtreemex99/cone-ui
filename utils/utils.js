@@ -15,14 +15,19 @@ export function formatBN(num, decimals = '18') {
 }
 
 export function parseBN(num, decimals = '18') {
-  if(!num) {
+  if(num === null || num === undefined) {
     // parse function pretty critical coz using in contract calls
     // better to throw an error
-    throw new Error("Invalid bn");
+    throw new Error("Invalid bn: " + num);
   }
-  return BigNumber(num)
-    .times(BigNumber(10).pow(BigNumber(parseInt(decimals))))
-    .toFixed(0);
+  try {
+    return BigNumber(num)
+      .times(BigNumber(10).pow(BigNumber(parseInt(decimals))))
+      .toFixed(0);
+  } catch (e) {
+    console.info("Error parse bn: ", num)
+    throw e;
+  }
 }
 
 export function formatCurrency(amount, decimals = 2) {

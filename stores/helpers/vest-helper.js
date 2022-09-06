@@ -53,7 +53,7 @@ export const createVest = async (
     });
 
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    const allowance = await getTokenAllowance(web3, govToken.address, account, CONTRACTS.VE_TOKEN_ADDRESS);
+    const allowance = await getTokenAllowance(web3, govToken, account, CONTRACTS.VE_TOKEN_ADDRESS);
 
     if (BigNumber(allowance).lt(amount)) {
       emitter.emit(ACTIONS.TX_STATUS, {
@@ -72,32 +72,21 @@ export const createVest = async (
     if (BigNumber(allowance).lt(amount)) {
       const tokenContract = new web3.eth.Contract(CONTRACTS.ERC20_ABI, govToken.address);
 
-      await Promise.all([
-        new Promise((resolve, reject) => {
-          callContractWait(
-            web3,
-            tokenContract,
-            "approve",
-            [CONTRACTS.VE_TOKEN_ADDRESS, MAX_UINT256],
-            account,
-            gasPrice,
-            null,
-            null,
-            allowanceTXID,
-            emitter,
-            dispatcher,
-            (err) => {
-              if (err) {
-                emitter.emit(ACTIONS.ERROR, err);
-                reject(err);
-                return;
-              }
-
-              resolve();
-            }
-          );
-        })
-      ]);
+      await callContractWait(
+        web3,
+        tokenContract,
+        "approve",
+        [CONTRACTS.VE_TOKEN_ADDRESS, MAX_UINT256],
+        account,
+        gasPrice,
+        null,
+        null,
+        allowanceTXID,
+        emitter,
+        dispatcher,
+        () => {
+        }
+      );
     }
 
     // SUBMIT VEST TRANSACTION
@@ -169,7 +158,7 @@ export const increaseVestAmount = async (
     });
 
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    const allowance = await getTokenAllowance(web3, govToken.address, account, CONTRACTS.VE_TOKEN_ADDRESS);
+    const allowance = await getTokenAllowance(web3, govToken, account, CONTRACTS.VE_TOKEN_ADDRESS);
 
     if (BigNumber(allowance).lt(amount)) {
       emitter.emit(ACTIONS.TX_STATUS, {
@@ -220,7 +209,7 @@ export const increaseVestAmount = async (
     }
 
     // SUBMIT INCREASE TRANSACTION
-    const sendAmount = formatBN(amount, govToken.decimals);
+    const sendAmount = parseBN(amount, govToken.decimals);
 
     const veTokenContract = getVeContract(web3);
 
@@ -313,14 +302,16 @@ export const increaseVestDuration = async (
 };
 
 function createGaugeWithdrawNotifications(gauges, notifications, gaugeWithdrawTXID) {
-  for (let i = 0; i < gauges.length; i++) {
-    const gauge = gauges[i];
-    gaugeWithdrawTXID[i] = getTXUUID();
-    notifications.push({
-      uuid: gaugeWithdrawTXID[i],
-      description: `Withdrawing your tokens for gauge ${gauge.pair.symbol}`,
-      status: "WAITING",
-    });
+  if (gauges) {
+    for (let i = 0; i < gauges.length; i++) {
+      const gauge = gauges[i];
+      gaugeWithdrawTXID[i] = getTXUUID();
+      notifications.push({
+        uuid: gaugeWithdrawTXID[i],
+        description: `Withdrawing your tokens for gauge ${gauge.pair.symbol}`,
+        status: "WAITING",
+      });
+    }
   }
 }
 
@@ -337,8 +328,8 @@ export const withdrawVest = async (
     const {tokenID} = payload.content;
     const ve = getVeFromSubgraph(tokenID)
 
-    const gauges = ve.gauges;
-    const bribes = ve.bribes;
+    const gauges = ve?.gauges ?? [];
+    const bribes = ve?.bribes ?? [];
     let gaugesLength = gauges.length;
     let bribesLength = bribes.length;
 
@@ -493,10 +484,10 @@ export const merge = async (
     const {tokenIDOne, tokenIDTwo} = payload.content;
     const ve = getVeFromSubgraph(tokenIDOne.id);
 
-    const gauges = ve.gauges;
-    const bribes = ve.bribes;
-    let gaugesLength = gauges.length;
-    let bribesLength = bribes.length;
+    const gauges = ve?.gauges ?? [];
+    const bribes = ve?.bribes ?? [];
+    let gaugesLength = gauges?.length ?? 0;
+    let bribesLength = bribes?.length ?? 0;
 
     let allowanceTXID = getTXUUID();
     let gaugeWithdrawTXID = [];
@@ -657,7 +648,7 @@ export const merge = async (
     );
 
   } catch (ex) {
-    console.error(ex);
+    console.error("Error merge", ex);
     emitter.emit(ACTIONS.ERROR, ex);
   }
 };

@@ -1,7 +1,13 @@
 import BigNumber from "bignumber.js";
 import {ACTIONS} from "./../constants";
+import {
+  emitNotificationConfirmed,
+  emitNotificationPending,
+  emitNotificationRejected,
+  emitNotificationSubmitted
+} from "./emit-helper";
 
-export const callContractWait = (
+export const callContractWait = async (
   web3,
   contract,
   method,
@@ -17,31 +23,16 @@ export const callContractWait = (
   paddGasCost,
   sendValue = null
 ) => {
-  // console.log(method)
-  // console.log(params)
-  // if(sendValue) {
-  //   console.log(sendValue)
-  // }
-  // console.log(uuid)
+  emitNotificationPending(emitter, uuid)
 
-  //estimate gas
-  emitter.emit(ACTIONS.TX_PENDING, {uuid});
-
-  const gasCost = contract.methods[method](...params)
+  await contract.methods[method](...params)
     .estimateGas({from: account, value: sendValue})
-    .then((gasAmount) => {
-      const context = this;
+    .then(async (gasAmount) => {
 
       let sendGasAmount = BigNumber(gasAmount).times(1.5).toFixed(0);
       let sendGasPrice = BigNumber(gasPrice).toFixed(0);
-      // if (paddGasCost) {
-      //   sendGasAmount = BigNumber(sendGasAmount).times(1.15).toFixed(0)
-      // }
-      //
-      // const sendGasAmount = '3000000'
-      // const context = this
-      //
-      contract.methods[method](...params)
+
+      await contract.methods[method](...params)
         .send({
           from: account,
           gasPrice: web3.utils.toWei(sendGasPrice, "gwei"),
@@ -50,14 +41,11 @@ export const callContractWait = (
           // maxFeePerGas: web3.utils.toWei(gasPrice, "gwei"),
           // maxPriorityFeePerGas: web3.utils.toWei("2", "gwei"),
         })
-        .on("transactionHash", function (txHash) {
-          emitter.emit(ACTIONS.TX_SUBMITTED, {uuid, txHash});
+        .on("transactionHash", async function (txHash) {
+          emitNotificationSubmitted(emitter, uuid, txHash)
         })
-        .on("receipt", function (receipt) {
-          emitter.emit(ACTIONS.TX_CONFIRMED, {
-            uuid,
-            txHash: receipt.transactionHash,
-          });
+        .on("receipt", async function (receipt) {
+          emitNotificationConfirmed(emitter, uuid, receipt.transactionHash)
           callback(null, receipt.transactionHash);
           if (dispatchEvent) {
             dispatcher.dispatch({
@@ -66,43 +54,30 @@ export const callContractWait = (
             });
           }
         })
-        .on("error", function (error) {
-          if (!error.toString().includes("-32601")) {
-            if (error.message) {
-              emitter.emit(ACTIONS.TX_REJECTED, {
-                uuid,
-                error: parseRpcError(error.message),
-              });
-              return callback(error.message);
-            }
-            emitter.emit(ACTIONS.TX_REJECTED, {uuid, error: error});
-            callback(error);
+        .on("error", async function (error) {
+          if (error.message) {
+            emitNotificationRejected(emitter, uuid, error.message)
+            return callback(error.message);
           }
+          emitNotificationRejected(emitter, uuid, error)
+          callback(error);
         })
-        .catch((error) => {
-          if (!error.toString().includes("-32601")) {
-            if (error.message) {
-              emitter.emit(ACTIONS.TX_REJECTED, {
-                uuid,
-                error: parseRpcError(error.message),
-              });
-              return callback(error.message);
-            }
-            emitter.emit(ACTIONS.TX_REJECTED, {uuid, error: error});
-            callback(error);
+        .catch(async (error) => {
+          if (error.message) {
+            emitNotificationRejected(emitter, uuid, error.message)
+            return callback(error.message);
           }
+          emitNotificationRejected(emitter, uuid, error)
+          await callback(error);
         });
     })
     .catch((ex) => {
       console.log("Call tx error", ex);
       if (ex.message) {
-        emitter.emit(ACTIONS.TX_REJECTED, {uuid, error: parseRpcError(ex.message)});
+        emitNotificationRejected(emitter, uuid, ex.message)
         return callback(ex.message);
       }
-      this.emitter.emit(ACTIONS.TX_REJECTED, {
-        uuid,
-        error: "Error estimating gas",
-      });
+      emitNotificationRejected(emitter, uuid, "Error estimating gas")
       callback(ex);
     });
 };
@@ -114,5 +89,6 @@ export function excludeErrors(error) {
 }
 
 function parseRpcError(error) {
-  return error.reason ? error.reason : error;
+  // return error.reason ? error.reason : error;
+  return error
 }

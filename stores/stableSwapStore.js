@@ -626,7 +626,6 @@ class Store {
       this.emitter,
       this.dispatcher,
       await stores.accountStore.getGasPrice(),
-      this.getStore("govToken"),
       async (tokenID) => {
         await this.getNFTByID(tokenID);
       }

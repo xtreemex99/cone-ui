@@ -26,7 +26,6 @@ export const createPairDeposit = async (
   isCreateGauge,
   callback
 ) => {
-  console.log(">>> CREATE PAIR")
   try {
 
     let toki0 = token0.address;
@@ -364,7 +363,6 @@ export const stakeLiquidity = async (
   callback
 ) => {
   try {
-    console.log(">>> STACK LIQ");
     const {pair, token, amount, percent} = payload.content;
 
     let stakeAllowanceTXID = getTXUUID();
@@ -466,7 +464,7 @@ export const stakeLiquidity = async (
       .toFixed(0);
 
     if (parseFloat(percent) === 100) {
-      callContractWait(
+      await callContractWait(
         web3,
         gaugeContract,
         "depositAll",
@@ -489,7 +487,7 @@ export const stakeLiquidity = async (
         }
       );
     } else {
-      callContractWait(
+      await callContractWait(
         web3,
         gaugeContract,
         "deposit",
@@ -702,10 +700,7 @@ export const unstakeLiquidity = async (
     // SUBMIT DEPOSIT TRANSACTION
     const sendAmount = parseBN(amount, pair.decimals);
 
-    const gaugeContract = new web3.eth.Contract(
-      CONTRACTS.GAUGE_ABI,
-      pair.gauge.address
-    );
+    const gaugeContract = new web3.eth.Contract(CONTRACTS.GAUGE_ABI, pair.gauge.address);
 
     if (parseFloat(percent) === 100) {
       callContractWait(

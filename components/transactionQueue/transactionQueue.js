@@ -23,10 +23,6 @@ export default function TransactionQueue({setQueueLength}) {
 
   const [open, setOpen] = useState(false);
   const [transactions, setTransactions] = useState([]);
-  const [purpose, setPurpose] = useState(null);
-  const [type, setType] = useState(null);
-  const [action, setAction] = useState(null);
-  const {appTheme} = useAppThemeContext();
 
   const handleClose = () => {
     setOpen(false);
@@ -45,9 +41,6 @@ export default function TransactionQueue({setQueueLength}) {
     };
 
     const transactionAdded = (params) => {
-      setPurpose(params.title);
-      setType(params.type);
-      setAction(params.verb);
       setOpen(true);
       const txs = [...params.transactions];
       setTransactions(txs);
