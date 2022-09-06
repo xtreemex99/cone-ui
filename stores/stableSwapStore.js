@@ -250,19 +250,6 @@ class Store {
     return pair;
   };
 
-  _getPairInfo = async (web3, account, overridePairs) => {
-    let pairs;
-    if (overridePairs) {
-      pairs = overridePairs;
-    } else {
-      pairs = this.getStore("pairs");
-    }
-    pairs = await enrichPairInfo(web3, account, pairs, await stores.accountStore.getMulticall(), this.getStore("baseAssets"));
-    await enrichBoostedApr(pairs)
-    this.setStore({pairs: pairs ?? []});
-    this.emitter.emit(ACTIONS.UPDATED);
-  };
-
   refreshPairs = async () => {
     let pairs = await getPairs();
     pairs = await enrichPairInfo(
@@ -272,6 +259,7 @@ class Store {
       await stores.accountStore.getMulticall(),
       this.getStore("baseAssets")
     );
+    await enrichBoostedApr(pairs)
     this.setStore({pairs: pairs});
   };
 
@@ -318,7 +306,6 @@ class Store {
     try {
       await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
       await this._getBaseAssetInfo(await this.getWeb3(), this.getAccount());
-      await this._getPairInfo(await this.getWeb3(), this.getAccount());
     } catch (ex) {
       console.log("Get balances fail", ex);
       this.emitter.emit(ACTIONS.ERROR, ex);
@@ -468,7 +455,7 @@ class Store {
       async (web3, account, fromAsset, toAsset) => {
         await this._getSpecificAssetInfo(web3, account, fromAsset.address);
         await this._getSpecificAssetInfo(web3, account, toAsset.address);
-        await this._getPairInfo(web3, account);
+        await this.refreshPairs();
       }
     )
   };
@@ -484,7 +471,7 @@ class Store {
       async (web3, account, fromAsset, toAsset) => {
         await this._getSpecificAssetInfo(web3, account, fromAsset.address);
         await this._getSpecificAssetInfo(web3, account, toAsset.address);
-        await this._getPairInfo(web3, account);
+        await this.refreshPairs();
       }
     )
   };
@@ -500,7 +487,7 @@ class Store {
       async (web3, account, fromAsset, toAsset) => {
         await this._getSpecificAssetInfo(web3, account, fromAsset.address);
         await this._getSpecificAssetInfo(web3, account, toAsset.address);
-        await this._getPairInfo(web3, account);
+        await this.refreshPairs();
       }
     )
   };

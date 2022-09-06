@@ -109,7 +109,7 @@ function Header(props) {
       closeUnlock();
     };
     const connectWallet = () => {
-      onAddressClicked();
+      disconnectWallet();
     };
 
     const accountChanged = () => {
@@ -142,7 +142,7 @@ function Header(props) {
   //   setWarningOpen(false);
   // };
 
-  const onAddressClicked = () => {
+  const disconnectWallet = () => {
     stores.accountStore.getStore("web3modal").clearCachedProvider();
     deactivate();
     setAccount(null);
@@ -155,10 +155,10 @@ function Header(props) {
         },
       },
     });
-    stores.dispatcher.dispatch({
-      type: ACTIONS.CONFIGURE_SS,
-      content: {connected: false},
-    });
+    // stores.dispatcher.dispatch({
+    //   type: ACTIONS.CONFIGURE_SS,
+    //   content: {connected: false},
+    // });
     window.localStorage.removeItem("walletconnect");
     window.localStorage.removeItem("WEB3_CONNECT_CACHED_PROVIDER");
     stores.accountStore.emitter.emit(ACTIONS.DISCONNECT_WALLET);
@@ -369,7 +369,7 @@ function Header(props) {
 
                 <div
                   className={[classes.headSwitchBtn, classes[`headSwitchBtn--${appTheme}`], 'g-flex', 'g-flex--align-center'].join(' ')}
-                  onClick={onAddressClicked}>
+                  onClick={disconnectWallet}>
                   <img
                     src="/images/ui/wallet.svg"
                     width={24}
