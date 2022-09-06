@@ -6,6 +6,7 @@ import Snackbar from "./snackbar.jsx";
 import { ACTIONS } from '../../stores/constants';
 
 import stores from "../../stores";
+import {excludeErrors} from "../../stores/helpers/web3-helper";
 const emitter = stores.emitter;
 
 const styles = theme => ({
@@ -34,6 +35,9 @@ class SnackbarController extends Component {
   }
 
   showError = error => {
+    if(excludeErrors(error)) {
+      return
+    }
     const snackbarObj = {
       snackbarMessage: null,
       snackbarType: null,

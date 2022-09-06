@@ -53,12 +53,6 @@ class Store {
     await this.getGasPrices();
 
     this.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
-
-    // this.dispatcher.dispatch({
-    //   type: ACTIONS.CONFIGURE_SS,
-    //   content: {connected: false},
-    // });
-
     window.removeEventListener('ethereum#initialized', this.subscribeProvider);
     window.addEventListener('ethereum#initialized', this.subscribeProvider, {
       once: true,
@@ -69,28 +63,22 @@ class Store {
     const that = this;
 
     window.ethereum.on('accountsChanged', async function (accounts) {
-      console.log('accountsChanged')
-      const address = accounts[0]
-      that.setStore({
-        account: {address},
-      });
+      const account = accounts[0]
+      that.setStore({account: account.address,});
+      that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,});
       that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
       that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
-      that.dispatcher.dispatch({
-        type: ACTIONS.CONFIGURE_SS,
-        content: {connected: true},
-      });
     });
 
     window.ethereum.on('chainChanged', async function (chainId) {
-      console.log('chainChanged')
       const supportedChainIds = [process.env.NEXT_PUBLIC_CHAINID];
       const parsedChainId = (parseInt(chainId + '', 16) + '');
       const isChainSupported = supportedChainIds.includes(parsedChainId);
       that.setStore({chainInvalid: !isChainSupported, chainId: parsedChainId});
+      that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,});
       that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
       that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
-      that.configure()
+      await that.configure()
     });
   };
 

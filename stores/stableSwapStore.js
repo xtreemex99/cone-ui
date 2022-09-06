@@ -1,5 +1,5 @@
 import {ACTIONS, CONTRACTS, ROUTE_ASSETS} from "./constants";
-import {formatBN, removeDuplicate} from "../utils";
+import {formatBN, removeDuplicate, parseBN} from "../utils";
 import stores from "./";
 
 import BigNumber from "bignumber.js";
@@ -30,6 +30,7 @@ import {
   getRewardBalances
 } from "./helpers/reward-helper";
 import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
+import {GOVERNANCE_ASSETS_UPDATED} from "./constants/actions";
 
 class Store {
   constructor(dispatcher, emitter) {
@@ -55,7 +56,7 @@ class Store {
       function (payload) {
         switch (payload.type) {
           case ACTIONS.CONFIGURE_SS:
-            this.configure(payload);
+            this.configure();
             break;
           case ACTIONS.GET_BALANCES:
             this.getBalances();
@@ -219,21 +220,24 @@ class Store {
     return web3;
   }
 
-  getNFTByID = async (id) => {
-    const nft = getNftById(id, this.getStore("vestNFTs"));
-    if (nft !== null) {
-      return nft;
-    }
-    const nfts = await loadNfts(this.getAccount(), await this.getWeb3());
-    this.setStore({vestNFTs: nfts});
-    return getNftById(id, nfts);
-  };
+  ////////////////////////////////////////////////////////////////
+  //                 PAIRS
+  ////////////////////////////////////////////////////////////////
 
-  getVestNFTs = async () => {
-    const nfts = await loadNfts(this.getAccount(), await this.getWeb3());
-    this.setStore({vestNFTs: nfts});
-    this.emitter.emit(ACTIONS.VEST_NFTS_RETURNED, nfts);
-    return nfts;
+  refreshPairs = async () => {
+    let pairs = this.getStore("pairs");
+    if (!pairs || pairs.length === 0) {
+      pairs = await getPairs();
+    }
+    pairs = await enrichPairInfo(
+      await this.getWeb3(),
+      this.getAccount(),
+      pairs,
+      await stores.accountStore.getMulticall(),
+      this.getStore("baseAssets")
+    );
+    await enrichBoostedApr(pairs)
+    this.setStore({pairs: pairs});
   };
 
   getPairByAddress = async (pairAddress) => {
@@ -250,18 +254,56 @@ class Store {
     return pair;
   };
 
-  refreshPairs = async () => {
-    let pairs = await getPairs();
-    pairs = await enrichPairInfo(
-      await this.getWeb3(),
-      this.getAccount(),
-      pairs,
-      await stores.accountStore.getMulticall(),
-      this.getStore("baseAssets")
-    );
-    await enrichBoostedApr(pairs)
-    this.setStore({pairs: pairs});
+  //////////////////////////////////////////////////////////////
+  //                   VE
+  //////////////////////////////////////////////////////////////
+
+  _getVeTokenBase = async () => {
+    return {
+      address: CONTRACTS.VE_TOKEN_ADDRESS,
+      name: CONTRACTS.VE_TOKEN_NAME,
+      symbol: CONTRACTS.VE_TOKEN_SYMBOL,
+      decimals: CONTRACTS.VE_TOKEN_DECIMALS,
+      logoURI: CONTRACTS.VE_TOKEN_LOGO,
+      veDistApr: await getVeApr(),
+    };
   };
+
+  getNFTByID = async (id) => {
+    const existNfts = this.getStore("vestNFTs");
+    const nft = getNftById(id, existNfts);
+    if (nft !== null) {
+      return nft;
+    }
+    const freshNft = await loadNfts(this.getAccount(), await this.getWeb3(), id);
+    if(freshNft.length > 0) {
+      existNfts.push(...freshNft)
+    }
+    return getNftById(id, existNfts);
+  };
+
+  getVestNFTs = async () => {
+    const nfts = await loadNfts(this.getAccount(), await this.getWeb3());
+    this.setStore({vestNFTs: nfts});
+    this.emitter.emit(ACTIONS.VEST_NFTS_RETURNED, nfts);
+    return nfts;
+  };
+
+  getVestVotes = async (payload) => {
+    await getVestVotes(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.getStore("pairs"),
+      await stores.accountStore.getMulticall(),
+      false // set true if any issues with subgraph
+    )
+  };
+
+  //////////////////////////////////////////////////////////////
+  //                   ASSETS
+  //////////////////////////////////////////////////////////////
 
   removeBaseAsset = (asset) => {
     const baseAssets = removeDuplicate(removeBaseAsset(asset, this.getStore("baseAssets")));
@@ -291,17 +333,6 @@ class Store {
     }
   };
 
-  _getVeTokenBase = async () => {
-    return {
-      address: CONTRACTS.VE_TOKEN_ADDRESS,
-      name: CONTRACTS.VE_TOKEN_NAME,
-      symbol: CONTRACTS.VE_TOKEN_SYMBOL,
-      decimals: CONTRACTS.VE_TOKEN_DECIMALS,
-      logoURI: CONTRACTS.VE_TOKEN_LOGO,
-      veDistApr: await getVeApr(),
-    };
-  };
-
   getBalances = async () => {
     try {
       await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
@@ -315,9 +346,11 @@ class Store {
   _refreshGovTokenInfo = async (web3, account) => {
     try {
       const govToken = this.getStore("govToken");
-      govToken.balanceOf = await getTokenBalance(govToken.address, web3, account.address, govToken.decimals);
-      govToken.balance = formatBN(govToken.balanceOf, govToken.decimals)
+      const balance = await getTokenBalance(govToken.address, web3, account, govToken.decimals);
+      govToken.balanceOf = parseBN(balance, govToken.decimals);
+      govToken.balance = balance
       this.setStore({govToken});
+      this.emitter.emit(ACTIONS.GOVERNANCE_ASSETS_UPDATED, govToken);
     } catch (ex) {
       console.log("Get gov token info error", ex);
     }
@@ -329,6 +362,59 @@ class Store {
     this.setStore({baseAssets});
     this.emitter.emit(ACTIONS.UPDATED);
   };
+
+  _refreshAssetBalance = async (web3, account, assetAddress) => {
+    try {
+      const baseAssets = this.getStore("baseAssets");
+      const govToken = this.getStore("govToken");
+      const asset = baseAssets?.filter((asset) => asset.address.toLowerCase() === assetAddress.toLowerCase())[0]
+      if (!asset) {
+        return;
+      }
+      if (asset.address === "BNB") {
+        asset.balance = formatBN(await web3.eth.getBalance(account))
+      } else {
+        asset.balance = await getTokenBalance(assetAddress, web3, account, asset.decimals)
+      }
+      if(assetAddress.toLowerCase() === govToken.address.toLowerCase()) {
+        await this._refreshGovTokenInfo(web3, account);
+      }
+      this.emitter.emit(ACTIONS.UPDATED);
+    } catch (ex) {
+      console.log("Refresh balance error", ex);
+    }
+  };
+
+  //////////////////////////////////////////////////////////////
+  //                   REWARDS
+  //////////////////////////////////////////////////////////////
+
+  getRewardBalances = async (payload) => {
+    const rewards = await getRewardBalances(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.getStore("pairs"),
+      this.getStore("veToken"),
+      this.getStore("govToken"),
+      this.getStore("vestNFTs"),
+      this.getStore("baseAssets"),
+      await stores.accountStore.getMulticall(),
+    );
+    this.setStore({rewards});
+    this.emitter.emit(ACTIONS.REWARD_BALANCES_RETURNED, rewards);
+  };
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  //                              Transactions calls
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////////
+  //                            LIQUIDITY
+  ////////////////////////////////////////////////////////////////////////////////
 
   createPairDeposit = async (payload) => {
     const {token0, token1, amount0, amount1, isStable, slippage} = payload.content;
@@ -347,6 +433,14 @@ class Store {
       true,
       async () => await this.refreshPairs()
     );
+  };
+
+  quoteAddLiquidity = async (payload) => {
+    await quoteAddLiquidity(
+      payload,
+      await this.getWeb3(),
+      this.emitter,
+    )
   };
 
   addLiquidity = async (payload) => {
@@ -368,22 +462,9 @@ class Store {
     );
   };
 
-  stakeLiquidity = async (payload) => {
-    await stakeLiquidity(
+  quoteRemoveLiquidity = async (payload) => {
+    await quoteRemoveLiquidity(
       payload,
-      this.getAccount(),
-      await this.getWeb3(),
-      this.emitter,
-      this.dispatcher,
-      await stores.accountStore.getGasPrice(),
-      async () => await this.refreshPairs()
-    )
-  };
-
-  quoteAddLiquidity = async (payload) => {
-    await quoteAddLiquidity(
-      payload,
-      this.getAccount(),
       await this.getWeb3(),
       this.emitter,
     )
@@ -401,26 +482,9 @@ class Store {
     )
   };
 
-  unstakeLiquidity = async (payload) => {
-    await unstakeLiquidity(
-      payload,
-      this.getAccount(),
-      await this.getWeb3(),
-      this.emitter,
-      this.dispatcher,
-      await stores.accountStore.getGasPrice(),
-      async () => await this.refreshPairs()
-    )
-  };
-
-  quoteRemoveLiquidity = async (payload) => {
-    await quoteRemoveLiquidity(
-      payload,
-      this.getAccount(),
-      await this.getWeb3(),
-      this.emitter,
-    )
-  };
+  ////////////////////////////////////////////////////////////////////////////////
+  //                            STAKE
+  ////////////////////////////////////////////////////////////////////////////////
 
   createGauge = async (payload) => {
     await createGauge(
@@ -433,6 +497,35 @@ class Store {
       async () => await this.refreshPairs()
     )
   };
+
+  stakeLiquidity = async (payload) => {
+    await stakeLiquidity(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async () => await this.refreshPairs()
+    )
+  };
+
+
+  unstakeLiquidity = async (payload) => {
+    await unstakeLiquidity(
+      payload,
+      this.getAccount(),
+      await this.getWeb3(),
+      this.emitter,
+      this.dispatcher,
+      await stores.accountStore.getGasPrice(),
+      async () => await this.refreshPairs()
+    )
+  };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  //                            SWAP
+  ////////////////////////////////////////////////////////////////////////////////
 
   quoteSwap = async (payload) => {
     await quoteSwap(
@@ -453,9 +546,8 @@ class Store {
       this.dispatcher,
       await stores.accountStore.getGasPrice(),
       async (web3, account, fromAsset, toAsset) => {
-        await this._getSpecificAssetInfo(web3, account, fromAsset.address);
-        await this._getSpecificAssetInfo(web3, account, toAsset.address);
-        await this.refreshPairs();
+        await this._refreshAssetBalance(web3, account, fromAsset.address);
+        await this._refreshAssetBalance(web3, account, toAsset.address);
       }
     )
   };
@@ -469,9 +561,8 @@ class Store {
       this.dispatcher,
       await stores.accountStore.getGasPrice(),
       async (web3, account, fromAsset, toAsset) => {
-        await this._getSpecificAssetInfo(web3, account, fromAsset.address);
-        await this._getSpecificAssetInfo(web3, account, toAsset.address);
-        await this.refreshPairs();
+        await this._refreshAssetBalance(web3, account, fromAsset.address);
+        await this._refreshAssetBalance(web3, account, toAsset.address);
       }
     )
   };
@@ -485,57 +576,15 @@ class Store {
       this.dispatcher,
       await stores.accountStore.getGasPrice(),
       async (web3, account, fromAsset, toAsset) => {
-        await this._getSpecificAssetInfo(web3, account, fromAsset.address);
-        await this._getSpecificAssetInfo(web3, account, toAsset.address);
-        await this.refreshPairs();
+        await this._refreshAssetBalance(web3, account, fromAsset.address);
+        await this._refreshAssetBalance(web3, account, toAsset.address);
       }
     )
   };
 
-  // todo remove
-  _getSpecificAssetInfo = async (web3, account, assetAddress) => {
-    try {
-      const baseAssets = this.getStore("baseAssets");
-      if (!baseAssets) {
-        console.warn("baseAssets not found");
-        return null;
-      }
-
-      const ba = await Promise.all(
-        baseAssets.map(async (asset) => {
-          if (asset.address.toLowerCase() === assetAddress.toLowerCase()) {
-            if (asset.address === "BNB") {
-              let bal = await web3.eth.getBalance(account.address);
-              asset.balance = BigNumber(bal)
-                .div(10 ** parseInt(asset.decimals))
-                .toFixed(parseInt(asset.decimals));
-            } else {
-              const assetContract = new web3.eth.Contract(
-                CONTRACTS.ERC20_ABI,
-                asset.address
-              );
-
-              const [balanceOf] = await Promise.all([
-                assetContract.methods.balanceOf(account.address).call(),
-              ]);
-
-              asset.balance = BigNumber(balanceOf)
-                .div(10 ** parseInt(asset.decimals))
-                .toFixed(parseInt(asset.decimals));
-            }
-          }
-
-          return asset;
-        })
-      );
-
-      this.setStore({baseAssets: removeDuplicate(ba)});
-      this.emitter.emit(ACTIONS.UPDATED);
-    } catch (ex) {
-      console.log(ex);
-      return null;
-    }
-  };
+  ////////////////////////////////////////////////////////////////////////////////
+  //                            VESTING
+  ////////////////////////////////////////////////////////////////////////////////
 
   createVest = async (payload) => {
     await createVest(
@@ -613,6 +662,10 @@ class Store {
     )
   };
 
+  ////////////////////////////////////////////////////////////////////////////////
+  //                            VOTES
+  ////////////////////////////////////////////////////////////////////////////////
+
   vote = async (payload) => {
     await vote(
       payload,
@@ -635,17 +688,9 @@ class Store {
     )
   };
 
-  getVestVotes = async (payload) => {
-    await getVestVotes(
-      payload,
-      this.getAccount(),
-      await this.getWeb3(),
-      this.emitter,
-      this.getStore("pairs"),
-      await stores.accountStore.getMulticall(),
-      false // set true if any issues with subgraph
-    )
-  };
+  //////////////////////////////////////////////////////////////
+  //                   BRIBE
+  //////////////////////////////////////////////////////////////
 
   createBribe = async (payload) => {
     await createBribe(
@@ -659,22 +704,9 @@ class Store {
     );
   };
 
-  getRewardBalances = async (payload) => {
-    const rewards = await getRewardBalances(
-      payload,
-      this.getAccount(),
-      await this.getWeb3(),
-      this.emitter,
-      this.getStore("pairs"),
-      this.getStore("veToken"),
-      this.getStore("govToken"),
-      this.getStore("vestNFTs"),
-      this.getStore("baseAssets"),
-      await stores.accountStore.getMulticall(),
-    );
-    this.setStore({rewards});
-    this.emitter.emit(ACTIONS.REWARD_BALANCES_RETURNED, rewards);
-  };
+  //////////////////////////////////////////////////////////////
+  //                   CLAIM
+  //////////////////////////////////////////////////////////////
 
   claimBribes = async (payload) => {
     await claimBribes(
@@ -736,10 +768,13 @@ class Store {
     )
   };
 
+  //////////////////////////////////////////////////////////////
+  //                   WHITELIST
+  //////////////////////////////////////////////////////////////
+
   searchWhitelist = async (payload) => {
     await searchWhitelist(
       payload,
-      this.getAccount(),
       await this.getWeb3(),
       this.emitter,
       async (search) => await this.getBaseAsset(search)

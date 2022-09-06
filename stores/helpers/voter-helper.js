@@ -136,7 +136,6 @@ export const getVestVotes = async (
   if (isOnChain) {
     return getVestVotesOnChain(
       payload,
-      account,
       web3,
       emitter,
       pairs,
@@ -158,7 +157,7 @@ const getVestVotesSubgraph = async (
   emitter,
   pairs
 ) => {
-  const userAddress = account?.address;
+  const userAddress = account;
   const {tokenID} = payload.content;
   if (!tokenID || !userAddress) {
     return [];
@@ -192,7 +191,6 @@ const getVestVotesSubgraph = async (
 
 const getVestVotesOnChain = async (
   payload,
-  account,
   web3,
   emitter,
   pairs,

@@ -252,7 +252,7 @@ export const createPairDeposit = async (
       sendAmount1,
       sendAmount0Min,
       sendAmount1Min,
-      account.address,
+      account,
       deadline,
     ];
     let sendValue = null;
@@ -265,7 +265,7 @@ export const createPairDeposit = async (
         sendAmount1,
         sendAmount1Min,
         sendAmount0Min,
-        account.address,
+        account,
         deadline,
       ];
       sendValue = sendAmount0;
@@ -278,7 +278,7 @@ export const createPairDeposit = async (
         sendAmount0,
         sendAmount0Min,
         sendAmount1Min,
-        account.address,
+        account,
         deadline,
       ];
       sendValue = sendAmount1;
@@ -393,9 +393,7 @@ export const stakeLiquidity = async (
       CONTRACTS.PAIR_ABI,
       pair.address
     );
-    const balanceOf = await pairContract.methods
-      .balanceOf(account.address)
-      .call();
+    const balanceOf = await pairContract.methods.balanceOf(account).call();
 
     if (
       BigNumber(stakeAllowance).lt(
@@ -646,7 +644,7 @@ export const removeLiquidity = async (
         sendAmount,
         sendAmount0Min,
         sendAmount1Min,
-        account.address,
+        account,
         deadline,
       ],
       account,

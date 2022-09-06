@@ -5,7 +5,6 @@ import {formatBN, parseBN, buildRoutes, retry, getPrice, getAmountOut} from '../
 
 export const quoteAddLiquidity = async (
   payload,
-  account,
   web3,
   emitter
 ) => {
@@ -62,7 +61,6 @@ export const quoteAddLiquidity = async (
 
 export const quoteRemoveLiquidity = async (
   payload,
-  account,
   web3,
   emitter
 ) => {

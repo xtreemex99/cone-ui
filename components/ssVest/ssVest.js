@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/router";
+import React, {useCallback, useEffect, useState} from "react";
+import {useRouter} from "next/router";
 import BigNumber from "bignumber.js";
 import stores from "../../stores";
-import { ACTIONS } from "../../stores/constants";
+import {ACTIONS} from "../../stores/constants";
 import moment from "moment";
 import ExistingLock from "./existingLock";
 import Unlock from "./unlock";
 import Lock from "./lock";
-import { MergeLock } from "./mergeLock";
-import { WithdrawLock } from "./withdrawLock";
 
 export default function ssVest() {
   const router = useRouter();
@@ -20,7 +18,7 @@ export default function ssVest() {
   const [nft, setNFT] = useState(null);
 
   const ssUpdated = async () => {
-    setGovToken(stores.stableSwapStore.getStore("govToken"));
+    updateGovToken()
     setVeToken(stores.stableSwapStore.getStore("veToken"));
 
     const nft = await stores.stableSwapStore.getNFTByID(router.query.id);
@@ -28,12 +26,18 @@ export default function ssVest() {
     forceUpdate();
   };
 
+  const updateGovToken = () => {
+    setGovToken(stores.stableSwapStore.getStore("govToken"));
+  }
+
   useEffect(() => {
     ssUpdated();
 
     stores.emitter.on(ACTIONS.UPDATED, ssUpdated);
+    stores.emitter.on(ACTIONS.GOVERNANCE_ASSETS_UPDATED, updateGovToken);
     return () => {
       stores.emitter.removeListener(ACTIONS.UPDATED, ssUpdated);
+      stores.emitter.removeListener(ACTIONS.GOVERNANCE_ASSETS_UPDATED, updateGovToken);
     };
   }, []);
 

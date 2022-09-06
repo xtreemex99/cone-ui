@@ -202,7 +202,7 @@ export const getRewardBalances = async (
   baseAssets,
   multicall
 ) => {
-  const userAddress = account?.address;
+  const userAddress = account;
   const {tokenID} = payload.content;
   if (rewardsLoading || !userAddress || !tokenID) {
     return null;
@@ -468,7 +468,7 @@ export const claimAllRewards = async (
         web3,
         gaugeContract,
         "getReward",
-        [account.address, sendTok],
+        [account, sendTok],
         account,
         gasPrice,
         null,
@@ -551,7 +551,7 @@ export const claimRewards = async (
       web3,
       gaugeContract,
       "getReward",
-      [account.address, sendTokens],
+      [account, sendTokens],
       account,
       gasPrice,
       null,

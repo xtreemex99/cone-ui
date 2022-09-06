@@ -47,7 +47,7 @@ async function updatePairFields(pair, web3, account) {
       pairCtr.methods.totalSupply().call(),
       pairCtr.methods.reserve0().call(),
       pairCtr.methods.reserve1().call(),
-      pairCtr.methods.balanceOf(account.address).call(),
+      pairCtr.methods.balanceOf(account).call(),
     ]);
     pair.balance = formatBN(balanceOf, pair.decimals);
     pair.totalSupply = formatBN(totalSupply, pair.decimals);
@@ -101,12 +101,12 @@ async function loadFullPairInfo(pairAddress, web3, account, baseAssets) {
     pairContract.methods.reserve0().call(),
     pairContract.methods.reserve1().call(),
     pairContract.methods.decimals().call(),
-    pairContract.methods.balanceOf(account.address).call(),
+    pairContract.methods.balanceOf(account).call(),
     pairContract.methods.stable().call(),
     gaugesContract.methods.gauges(pairAddress).call(),
     gaugesContract.methods.weights(pairAddress).call(),
-    pairContract.methods.claimable0(account.address).call(),
-    pairContract.methods.claimable1(account.address).call(),
+    pairContract.methods.claimable0(account).call(),
+    pairContract.methods.claimable1(account).call(),
   ]);
 
   const token0Contract = new web3.eth.Contract(CONTRACTS.ERC20_ABI, token0);
@@ -122,10 +122,10 @@ async function loadFullPairInfo(pairAddress, web3, account, baseAssets) {
   ] = await Promise.all([
     token0Contract.methods.symbol().call(),
     token0Contract.methods.decimals().call(),
-    token0Contract.methods.balanceOf(account.address).call(),
+    token0Contract.methods.balanceOf(account).call(),
     token1Contract.methods.symbol().call(),
     token1Contract.methods.decimals().call(),
-    token1Contract.methods.balanceOf(account.address).call(),
+    token1Contract.methods.balanceOf(account).call(),
   ]);
 
   const thePair = {
@@ -177,7 +177,7 @@ async function loadFullPairInfo(pairAddress, web3, account, baseAssets) {
 
     const [totalSupply, gaugeBalance, bribeAddress] = await Promise.all([
       gaugeContract.methods.totalSupply().call(),
-      gaugeContract.methods.balanceOf(account.address).call(),
+      gaugeContract.methods.balanceOf(account).call(),
       gaugesContract.methods.bribes(gaugeAddress).call(),
     ]);
 
@@ -514,7 +514,7 @@ export const enrichPairInfo = async (
   multicall,
   baseAssets,
 ) => {
-  const userAddress = account?.address;
+  const userAddress = account;
   if (!userAddress || !web3) {
     return pairs;
   }
@@ -537,7 +537,7 @@ export const enrichPairInfo = async (
       userAddress
     )
 
-    await addTokenInfoToPairs(pairs, baseAssets, web3, account)
+    await addTokenInfoToPairs(pairs, baseAssets, web3, userAddress)
 
     const ethPrice = getEthPrice();
     const totalWeight = await getTotalWight(web3);
