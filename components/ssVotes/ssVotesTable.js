@@ -1117,8 +1117,8 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                           }}>
                           {
                             tableCellContent(
-                              `${formatCurrency(BigNumber(row?.gauge?.apr), 0)}%`,
-                              `${formatCurrency(BigNumber(row?.gauge?.expectAPR), 0)}%`,
+                              `${formatCurrency(BigNumber(row?.gauge?.derivedAPR), 0)}%`,
+                              `${formatCurrency(BigNumber(row?.gauge?.expectAPRDerived), 0)}%`,
                               'Current',
                               'Next week'
                             )
@@ -1845,9 +1845,9 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                             textAlign: 'right',
                                             whiteSpace: 'nowrap',
                                           }}>
-                                        Current: {`${formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr), BigNumber(row?.gauge?.boostedApr0), BigNumber(row?.gauge?.boostedApr1)), 0)}%`}
+                                        Current: {`${formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.derivedAPR)), 0)}%`}
 										<br />
-										Next: {`${formatCurrency(BigNumber(row?.gauge?.expectAPR), 0)}%`}
+										Next: {`${formatCurrency(BigNumber(row?.gauge?.expectAPRDerived), 0)}%`}
                                     </Typography>
                                     {/* <Typography
                                           className={classes.textSpaced}
@@ -1963,7 +1963,7 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                                 }}>
                                               {headCell.id === 'tvl' && `${(numeral(BigNumber(row?.tvl).toLocaleString()).format('($ 0a)'))} `}
                                               {headCell.id === 'apr' && `${
-                                                  formatCurrency(row?.gauge?.apr, 0)
+                                                  formatCurrency(row?.gauge?.derivedAPR, 0)
                                               }%`}
                                               {headCell.id === 'balance' && formatCurrency(BigNumber(row?.gauge?.balance).div(row?.gauge?.totalSupply).times(row?.gauge?.reserve0))}
                                               {headCell.id === 'liquidity' && formatCurrency(BigNumber(row?.reserve0))}
