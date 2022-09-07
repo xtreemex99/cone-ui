@@ -34,6 +34,7 @@ export const pairsQuery = `
       totalSupply
       totalSupplyETH
       expectAPR
+      expectAPRDerived
       voteWeight
       totalWeight
       totalDerivedSupply
@@ -42,6 +43,7 @@ export const pairsQuery = `
       }
       rewardTokens {
         apr
+        derivedAPR
         left
         finishPeriod
         token {

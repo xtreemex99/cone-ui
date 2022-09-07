@@ -1813,10 +1813,10 @@ export default function EnhancedTable({pairs, isLoading}) {
 
                                             {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
                                               <div className={css.tooltip_row}>
-                                                <b>
-                                                  {BigNumber(row?.gauge?.boost).toFixed(2)}%
+                                                <b style={{ color: "green" }}>
+                                                  x{BigNumber(row?.gauge?.boost).toFixed(2)}
                                                 </b>{" "}
-                                                <b>Your boost</b>
+                                                <b style={{ color: "green" }}>Your boost</b>
                                               </div>
                                             }
 
@@ -2809,10 +2809,10 @@ export default function EnhancedTable({pairs, isLoading}) {
 
                                         {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
                                           <div className={css.tooltip_row}>
-                                            <b>
-                                              {BigNumber(row?.gauge?.boost).toFixed(2)}%
+                                            <b style={{ color: "green" }}>
+                                              x{BigNumber(row?.gauge?.boost).toFixed(2)}
                                             </b>{" "}
-                                            <b>Your boost</b>
+                                            <b style={{ color: "green" }}>Your boost</b>
                                           </div>
                                         }
 

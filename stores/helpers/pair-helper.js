@@ -475,7 +475,7 @@ async function fetchGaugeBalancesForPairs(
   nfts,
   userInfo
 ) {
-  await calcDerivedApr(web3, pairs.filter(pair => pair.gauge && pair.gauge.address !== ZERO_ADDRESS));
+  calcDerivedApr(pairs.filter(pair => pair.gauge && pair.gauge.address !== ZERO_ADDRESS));
 
   const pairsWithGauges = pairs.filter(pair => !!pair.userPosition && pair.gauge && pair.gauge.address !== ZERO_ADDRESS);
 
@@ -540,7 +540,7 @@ async function fetchGaugeBalancesForPairs(
 
         pair.gauge.personalAPR = personalAPR.toString();
         pair.gauge.aprWithoutBoost = aprWithoutBoost.toString();
-        pair.gauge.boost = personalAPR.div(aprWithoutBoost).times(100).minus(100).toString();
+        pair.gauge.boost = personalAPR.div(aprWithoutBoost).toString();
         // console.log("PAIR: ", pair.symbol, pair);
       }
     }
@@ -548,7 +548,7 @@ async function fetchGaugeBalancesForPairs(
 }
 
 
-async function calcDerivedApr(web3, pairs) {
+function calcDerivedApr(pairs) {
   for (let i = 0; i < pairs.length; i++) {
     const pair = pairs[i];
 
