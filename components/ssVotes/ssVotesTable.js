@@ -1963,16 +1963,8 @@ export default function EnhancedTable({gauges, setParentSliderValues, defaultVot
                                                 }}>
                                               {headCell.id === 'tvl' && `${(numeral(BigNumber(row?.tvl).toLocaleString()).format('($ 0a)'))} `}
                                               {headCell.id === 'apr' && `${
-                                                  formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr).div(100).times(40),
-                                                      BigNumber(row?.gauge?.boostedApr0),
-                                                      BigNumber(row?.gauge?.boostedApr1)
-                                                  ), 0)
-                                              }→${
-                                                  formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr),
-                                                      BigNumber(row?.gauge?.boostedApr0),
-                                                      BigNumber(row?.gauge?.boostedApr1)
-                                                  ),0)
-                                              } %`}
+                                                  formatCurrency(row?.gauge?.apr, 0)
+                                              }%`}
                                               {headCell.id === 'balance' && formatCurrency(BigNumber(row?.gauge?.balance).div(row?.gauge?.totalSupply).times(row?.gauge?.reserve0))}
                                               {headCell.id === 'liquidity' && formatCurrency(BigNumber(row?.reserve0))}
                                               {headCell.id === 'apy' && row?.gaugebribes.bribeTokens.length ? (

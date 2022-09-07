@@ -1,8 +1,9 @@
 import BigNumber from "bignumber.js";
-import {formatBN} from '../../utils';
+import {calculateApr, formatBN} from '../../utils';
 import {createClient} from "urql";
 import {BLACK_LIST_TOKENS, CONTRACTS, NETWORK_TOKEN_NAME, QUERIES, WBNB_ADDRESS, ZERO_ADDRESS} from "./../constants";
 import {getEthPrice, getOrCreateBaseAsset, isNetworkToken} from "./token-helper";
+import {multicallRequest} from "./multicall-helper";
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
@@ -466,43 +467,102 @@ async function fetchBalancesForPairs(
   }
 }
 
-
 async function fetchGaugeBalancesForPairs(
   pairs,
   multicall,
   web3,
-  userAddress
+  userAddress,
+  nfts,
+  userInfo
 ) {
+  await calcDerivedApr(web3, pairs.filter(pair => pair.gauge && pair.gauge.address !== ZERO_ADDRESS));
 
-  let calls = [];
-  let callsPairs = [];
-  const pairsWithPosition = [];
+  const pairsWithGauges = pairs.filter(pair => !!pair.userPosition && pair.gauge && pair.gauge.address !== ZERO_ADDRESS);
 
+  const gaugeBalances = await multicallRequest(
+    multicall,
+    pairsWithGauges,
+    (calls, pair) => calls.push(getGaugeContract(web3, pair.gauge.address).methods.balanceOf(userAddress))
+  );
+
+  for (let i = 0; i < pairsWithGauges.length; i++) {
+    pairsWithGauges[i].gauge.balance = formatBN(gaugeBalances[i]);
+  }
+
+  const gaugesWithBalances = pairsWithGauges.filter(pair => !BigNumber(pair.gauge.balance).isZero());
+
+  const gaugeVeIds = await multicallRequest(
+    multicall,
+    gaugesWithBalances,
+    (calls, pair) => calls.push(getGaugeContract(web3, pair.gauge.address).methods.tokenIds(userAddress))
+  );
+
+  for (let i = 0; i < gaugesWithBalances.length; i++) {
+    const pair = gaugesWithBalances[i];
+    pair.gauge.veId = gaugeVeIds[i].toString();
+
+    if (pair.gauge.veId !== '0') {
+      const gaugePosition = userInfo?.gaugePositions?.filter(g => g.gauge.id.toLowerCase() === pair.gauge.id.toLowerCase())[0]
+      if (!!gaugePosition) {
+
+
+        const nft = nfts?.filter(nft => parseInt(nft.id) === parseInt(pair.gauge.veId))[0];
+
+        pair.gauge.balanceEth = BigNumber(pair.gauge.balance).times(BigNumber(pair.reserveETH).div(pair.totalSupply)).toString();
+        pair.gauge.baseBalance = BigNumber(pair.gauge.balance).times(0.4).toString();
+        const totalSupplyBase = BigNumber(pair.gauge.totalSupply).times(0.6)
+        pair.gauge.veRatio = nft.veRatio;
+        pair.gauge.bonusBalance = totalSupplyBase.times(nft.veRatio).toString();
+        const fullDerivedBalance = BigNumber(pair.gauge.bonusBalance).plus(pair.gauge.baseBalance);
+        pair.gauge.userDerivedBalance = fullDerivedBalance.gt(pair.gauge.balance) ? pair.gauge.balance : fullDerivedBalance.toString();
+        pair.gauge.userDerivedBalanceEth = BigNumber(pair.gauge.userDerivedBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply)).toString();
+
+
+        let personalAPR = BigNumber(0);
+        let aprWithoutBoost = BigNumber(0);
+        for (const rt of pair.gauge.rewardTokens) {
+          rt.userDerivedBalanceEth = pair.gauge.userDerivedBalanceEth
+
+          const startTime = Math.floor(Date.now() / 1000);
+
+          rt.userPartOfRewards = BigNumber(rt.rewardsLeftEth).times(rt.userDerivedBalanceEth).div(rt.totalDerivedSupplyEth).toString()
+          rt.personalAPR = calculateApr(startTime, rt.finishPeriod, rt.userPartOfRewards, pair.gauge.balanceEth);
+
+
+          const baseBalanceEth = BigNumber(pair.gauge.baseBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+          rt.userPartOfRewardsWithoutBoost = BigNumber(rt.rewardsLeftEth).times(baseBalanceEth).div(rt.totalDerivedSupplyEth).toString()
+          rt.aprWithoutBoost = calculateApr(startTime, rt.finishPeriod, rt.userPartOfRewardsWithoutBoost, pair.gauge.balanceEth);
+
+          personalAPR = personalAPR.plus(rt.personalAPR);
+          aprWithoutBoost = aprWithoutBoost.plus(rt.aprWithoutBoost);
+        }
+
+
+        pair.gauge.personalAPR = personalAPR.toString();
+        pair.gauge.aprWithoutBoost = aprWithoutBoost.toString();
+        pair.gauge.boost = personalAPR.div(aprWithoutBoost).times(100).minus(100).toString();
+        // console.log("PAIR: ", pair.symbol, pair);
+      }
+    }
+  }
+}
+
+
+async function calcDerivedApr(web3, pairs) {
   for (let i = 0; i < pairs.length; i++) {
     const pair = pairs[i];
-    if (!!pair.userPosition && pair.gauge && pair.gauge.address !== ZERO_ADDRESS) {
-      pairsWithPosition.push(pair);
-    }
-  }
 
-  for (let i = 0; i < pairsWithPosition.length; i++) {
-    const pair = pairsWithPosition[i];
-    calls.push(getGaugeContract(web3, pair.gauge.address).methods.balanceOf(userAddress))
-    callsPairs.push(pair);
-    if (calls > 30) {
-      const balances = await multicall.aggregate(calls);
-      for (let j = 0; j < callsPairs.length; j++) {
-        callsPairs[j].gauge.balance = formatBN(balances[j], callsPairs[j].decimals);
-      }
-      calls = [];
-      callsPairs = [];
+    let derivedAPR = BigNumber(0);
+    const totalDerivedSupplyEth = BigNumber(pair.gauge.totalDerivedSupply).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+    for (const rt of pair.gauge.rewardTokens) {
+      rt.totalDerivedSupplyEth = totalDerivedSupplyEth.toString();
+      rt.rewardsLeftEth = BigNumber(rt.left).times(rt.token.derivedETH).toString();
+      const startTime = Math.floor(Date.now() / 1000)
+      rt.derivedAPR = calculateApr(startTime, rt.finishPeriod, rt.rewardsLeftEth, totalDerivedSupplyEth);
+      derivedAPR = derivedAPR.plus(rt.derivedAPR);
     }
-  }
-  if (calls.length > 0) {
-    const balances = await multicall.aggregate(calls);
-    for (let j = 0; j < callsPairs.length; j++) {
-      callsPairs[j].gauge.balance = formatBN(balances[j], callsPairs[j].decimals);
-    }
+
+    pair.gauge.derivedAPR = derivedAPR.toString();
   }
 }
 
@@ -512,6 +572,7 @@ export const enrichPairInfo = async (
   pairs,
   multicall,
   baseAssets,
+  nfts
 ) => {
   const userAddress = account;
   if (!userAddress || !web3) {
@@ -519,7 +580,6 @@ export const enrichPairInfo = async (
   }
   try {
     const userInfo = await loadUserInfoFromSubgraph(userAddress);
-
     enrichPositionInfoToPairs(pairs, userInfo)
 
     await fetchBalancesForPairs(
@@ -533,7 +593,9 @@ export const enrichPairInfo = async (
       pairs,
       multicall,
       web3,
-      userAddress
+      userAddress,
+      nfts,
+      userInfo
     )
 
     await addTokenInfoToPairs(pairs, baseAssets, web3, userAddress)
@@ -619,8 +681,8 @@ function mapPairInfo(pairs, ethPrice, totalWeight) {
       }
 
       pair.gauge.apr = apr.toString();
-      pair.gauge.boostedApr0 = "0";
-      pair.gauge.boostedApr1 = "0";
+      pair.gauge.additionalApr0 = "0";
+      pair.gauge.additionalApr1 = "0";
 
     }
   );

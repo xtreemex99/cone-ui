@@ -12,6 +12,7 @@ export const pairsQuery = `
     token1Price
     totalSupply
     reserveUSD
+    reserveETH
     token0 {
       id
       symbol
@@ -35,15 +36,19 @@ export const pairsQuery = `
       expectAPR
       voteWeight
       totalWeight
+      totalDerivedSupply
       bribe {
         id
       }
       rewardTokens {
         apr
+        left
+        finishPeriod
         token {
           id
           symbol
           decimals
+          derivedETH
         }
       }
     }
@@ -190,6 +195,7 @@ query user($id: ID!) {
       balance
       gauge {
         totalSupply
+        totalDerivedSupply
         id
         bribe{
           id
@@ -205,6 +211,10 @@ query user($id: ID!) {
       lockedAmount
       lockedEnd
       attachments
+      ve {
+        id
+        totalLocked
+      }
       votes {
         pool {
           id

@@ -1,14 +1,12 @@
 import {ACTIONS, CONTRACTS, ROUTE_ASSETS} from "./constants";
-import {formatBN, removeDuplicate, parseBN} from "../utils";
+import {formatBN, parseBN, removeDuplicate} from "../utils";
 import stores from "./";
-
-import BigNumber from "bignumber.js";
 import router from "next/router";
-import {getNftById, getVeApr, loadNfts, updateVestNFTByID} from "./helpers/ve-helper";
+import {getNftById, getVeApr, loadNfts} from "./helpers/ve-helper";
 import {enrichPairInfo, getAndUpdatePair, getPairs, loadPair} from "./helpers/pair-helper";
 import {removeBaseAsset, saveLocalAsset} from "./helpers/local-storage-helper";
 import {getBalancesForBaseAssets, getBaseAssets, getOrCreateBaseAsset, getTokenBalance} from "./helpers/token-helper";
-import {enrichBoostedApr} from "./helpers/boost-helper";
+import {enrichAdditionalApr} from "./helpers/additional-apr-helper";
 import {
   createGauge,
   createPairDeposit,
@@ -30,7 +28,6 @@ import {
   getRewardBalances
 } from "./helpers/reward-helper";
 import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
-import {GOVERNANCE_ASSETS_UPDATED} from "./constants/actions";
 
 class Store {
   constructor(dispatcher, emitter) {
@@ -57,9 +54,6 @@ class Store {
         switch (payload.type) {
           case ACTIONS.CONFIGURE_SS:
             this.configure();
-            break;
-          case ACTIONS.GET_BALANCES:
-            this.getBalances();
             break;
 
           // LIQUIDITY
@@ -185,9 +179,10 @@ class Store {
     this.setStore({veToken: await this._getVeTokenBase()});
     this.setStore({routeAssets: ROUTE_ASSETS});
     this.setStore({baseAssets: await getBaseAssets()});
-    await this.refreshPairs()
-    await this.getBalances();
     await this.getVestNFTs();
+    await this.refreshPairs()
+    await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
+    await this._getBaseAssetInfo(await this.getWeb3(), this.getAccount());
 
     this.emitter.emit(ACTIONS.UPDATED);
     this.emitter.emit(ACTIONS.CONFIGURED_SS);
@@ -234,9 +229,10 @@ class Store {
       this.getAccount(),
       pairs,
       await stores.accountStore.getMulticall(),
-      this.getStore("baseAssets")
+      this.getStore("baseAssets"),
+      this.getStore("vestNFTs")
     );
-    await enrichBoostedApr(pairs)
+    await enrichAdditionalApr(pairs)
     this.setStore({pairs: pairs});
   };
 
@@ -276,7 +272,7 @@ class Store {
       return nft;
     }
     const freshNft = await loadNfts(this.getAccount(), await this.getWeb3(), id);
-    if(freshNft.length > 0) {
+    if (freshNft.length > 0) {
       existNfts.push(...freshNft)
     }
     return getNftById(id, existNfts);
@@ -333,16 +329,6 @@ class Store {
     }
   };
 
-  getBalances = async () => {
-    try {
-      await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
-      await this._getBaseAssetInfo(await this.getWeb3(), this.getAccount());
-    } catch (ex) {
-      console.log("Get balances fail", ex);
-      this.emitter.emit(ACTIONS.ERROR, ex);
-    }
-  };
-
   _refreshGovTokenInfo = async (web3, account) => {
     try {
       const govToken = this.getStore("govToken");
@@ -376,7 +362,7 @@ class Store {
       } else {
         asset.balance = await getTokenBalance(assetAddress, web3, account, asset.decimals)
       }
-      if(assetAddress.toLowerCase() === govToken.address.toLowerCase()) {
+      if (assetAddress.toLowerCase() === govToken.address.toLowerCase()) {
         await this._refreshGovTokenInfo(web3, account);
       }
       this.emitter.emit(ACTIONS.UPDATED);
