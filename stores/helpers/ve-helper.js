@@ -12,52 +12,15 @@ export function getNftById(id, nfts) {
   return nfts.filter(n => parseInt(n.id) === parseInt(id)).reduce((a, b) => b, null);
 }
 
-//
-// export const loadNfts = async (account, web3) => {
-//   if (!account || !web3) {
-//     return [];
-//   }
-//   try {
-//     const vestingContract = getVestingContract(web3);
-//
-//     const nftsLength = await vestingContract.methods
-//       .balanceOf(account.address)
-//       .call();
-//     const arr = Array.from({length: parseInt(nftsLength)}, (v, i) => i);
-//
-//     return await Promise.all(
-//       arr.map(async (idx) => {
-//         const tokenIndex = await vestingContract.methods
-//           .tokenOfOwnerByIndex(account.address, idx)
-//           .call();
-//         const locked = await vestingContract.methods
-//           .locked(tokenIndex)
-//           .call();
-//         const lockValue = await vestingContract.methods
-//           .balanceOfNFT(tokenIndex)
-//           .call();
-//
-//         return {
-//           id: tokenIndex,
-//           lockEnds: locked.end,
-//           lockAmount: formatBN(locked.amount),
-//           lockValue: formatBN(lockValue),
-//         };
-//       })
-//     );
-//   } catch (ex) {
-//     console.log("Error load veNFTs", ex);
-//     return [];
-//   }
-// };
-
-
 export const loadNfts = async (account, web3, tokenID) => {
   if (!account || !web3) {
     return [];
   }
   try {
+    // const userInfo = await loadUserInfoFromSubgraph(account);
+    // const userNfts = userInfo?.nfts ?? [];
     const vestingContract = getVestingContract(web3);
+    const totalPower = formatBN(await vestingContract.methods.totalSupply().call());
     const nftsLength = await vestingContract.methods.balanceOf(account).call();
     const nftRange = Array.from({length: parseInt(nftsLength)}, (v, i) => i);
 
@@ -66,12 +29,16 @@ export const loadNfts = async (account, web3, tokenID) => {
         const tokenIndex = await vestingContract.methods.tokenOfOwnerByIndex(account, idx).call();
         if (!tokenID || parseInt(tokenIndex) === parseInt(tokenIndex)) {
           const locked = await vestingContract.methods.locked(tokenIndex).call();
-          const lockValue = await vestingContract.methods.balanceOfNFT(tokenIndex).call();
+          const lockValue = formatBN(await vestingContract.methods.balanceOfNFT(tokenIndex).call());
+
           return {
             id: tokenIndex,
             lockEnds: locked.end,
             lockAmount: formatBN(locked.amount),
-            lockValue: formatBN(lockValue),
+            lockValue: lockValue,
+            // subgraphInfo: userNfts.filter(n => parseInt(n.id) === parseInt(tokenIndex))[0],
+            veRatio: BigNumber(lockValue).div(totalPower).toString(),
+            percentOfTotalPower: BigNumber(lockValue).div(totalPower).times(100).toString(),
           };
         } else {
           return null;
@@ -81,39 +48,6 @@ export const loadNfts = async (account, web3, tokenID) => {
   } catch (ex) {
     console.log("Error load veNFTs", ex);
     return [];
-  }
-};
-
-export const updateVestNFTByID = async (id, vestNFTs, web3, govToken) => {
-  try {
-    if (getNftById(id, vestNFTs) === null) {
-      return vestNFTs;
-    }
-
-    const vestingContract = getVestingContract();
-
-    const locked = await vestingContract.methods.locked(id).call();
-    const lockValue = await vestingContract.methods.balanceOfNFT(id).call();
-
-    return vestNFTs.map((nft) => {
-      if (nft.id === id) {
-        return {
-          id: id,
-          lockEnds: locked.end,
-          lockAmount: BigNumber(locked.amount)
-            .div(10 ** parseInt(govToken.decimals))
-            .toFixed(parseInt(govToken.decimals)),
-          lockValue: BigNumber(lockValue)
-            .div(10 ** 18)
-            .toFixed(18),
-        };
-      }
-
-      return nft;
-    });
-  } catch (ex) {
-    console.log("Error update veNFT", ex);
-    return vestNFTs;
   }
 };
 

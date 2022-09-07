@@ -6,7 +6,7 @@ export const getTXUUID = () => {
 };
 
 export function formatBN(num, decimals = '18') {
-  if(!num) {
+  if (!num) {
     return "0";
   }
   return BigNumber(num)
@@ -15,7 +15,7 @@ export function formatBN(num, decimals = '18') {
 }
 
 export function parseBN(num, decimals = '18') {
-  if(num === null || num === undefined) {
+  if (num === null || num === undefined) {
     // parse function pretty critical coz using in contract calls
     // better to throw an error
     throw new Error("Invalid bn: " + num);
@@ -45,6 +45,19 @@ export function formatCurrency(amount, decimals = 2) {
   } else {
     return 0;
   }
+}
+
+export function calculateApr(
+  timeStart,
+  timeEnd,
+  profit,
+  positionAmount,
+) {
+  const period = BigNumber(timeEnd).minus(timeStart);
+  if (period.isZero() || BigNumber(positionAmount).isZero()) {
+    return '0';
+  }
+  return BigNumber(profit).div(positionAmount).div(period.div(60 * 60 * 24)).times(36500).toString();
 }
 
 export function formatAddress(address, length = "short") {
