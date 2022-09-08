@@ -161,6 +161,9 @@ export const getBaseAssets = async () => {
 };
 
 export const getBalancesForBaseAssets = async (web3, account, baseAssets, multicall) => {
+  if (!web3 || !account || !baseAssets || !multicall) {
+    return;
+  }
   try {
     let batch = [];
     let tokens = [];

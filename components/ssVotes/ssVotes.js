@@ -45,7 +45,7 @@ export default function ssVotes() {
     });
     setGauges(filteredAssets);
 
-    const nfts = stores.stableSwapStore.getStore("vestNFTs");
+    const nfts = stores.stableSwapStore.getStore("vestNFTs") ?? [];
     setVestNFTs(nfts);
 
     if (nfts?.length > 0) {

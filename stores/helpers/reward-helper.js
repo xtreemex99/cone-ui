@@ -6,8 +6,6 @@ import {enrichLogoUri} from "./token-helper";
 import {multicallRequest} from "./multicall-helper";
 import {callContractWait} from "./web3-helper";
 
-let rewardsLoading = false;
-
 function bribeModel(
   symbol,
   token0,
@@ -202,12 +200,12 @@ export const getRewardBalances = async (
   baseAssets,
   multicall
 ) => {
+  // console.log('getRewardBalances')
   const userAddress = account;
   const {tokenID} = payload.content;
-  if (rewardsLoading || !userAddress || !tokenID || !pairs || !veToken || !govToken || !vestNFTs || !baseAssets) {
+  if (!userAddress || !tokenID || !pairs || !veToken || !govToken || !vestNFTs || !baseAssets) {
     return null;
   }
-  rewardsLoading = true;
   try {
 
     const userInfo = await loadUserInfoFromSubgraph(userAddress);
@@ -260,8 +258,6 @@ export const getRewardBalances = async (
   } catch (ex) {
     console.error("Collect rewards info error", ex);
     emitter.emit(ACTIONS.ERROR, ex);
-  } finally {
-    rewardsLoading = false;
   }
 };
 

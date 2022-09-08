@@ -29,25 +29,30 @@ import {
 } from "./helpers/reward-helper";
 import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
 
+const EMPTY_STORE = {
+  baseAssets: [],
+  govToken: null,
+  veToken: null,
+  pairs: [],
+  vestNFTs: null,
+  migratePair: [],
+  rewards: {
+    bribes: [],
+    fees: [],
+    rewards: [],
+  },
+  apr: [],
+};
+
 class Store {
+
+  configurationLoading = false;
+
   constructor(dispatcher, emitter) {
     this.dispatcher = dispatcher;
     this.emitter = emitter;
 
-    this.store = {
-      baseAssets: [],
-      govToken: null,
-      veToken: null,
-      pairs: [],
-      vestNFTs: [],
-      migratePair: [],
-      rewards: {
-        bribes: [],
-        fees: [],
-        rewards: [],
-      },
-      apr: [],
-    };
+    this.store = EMPTY_STORE;
 
     dispatcher.register(
       function (payload) {
@@ -166,26 +171,36 @@ class Store {
 
   // DISPATCHER FUNCTIONS
   configure = async () => {
-    this.setStore({
-      govToken: {
-        address: CONTRACTS.GOV_TOKEN_ADDRESS,
-        name: CONTRACTS.GOV_TOKEN_NAME,
-        symbol: CONTRACTS.GOV_TOKEN_SYMBOL,
-        decimals: CONTRACTS.GOV_TOKEN_DECIMALS,
-        logoURI: CONTRACTS.GOV_TOKEN_LOGO,
-      }
-    });
+    console.log('configure')
+    if(this.configurationLoading || this.getAccount() === null) {
+      return;
+    }
+    try {
+      this.configurationLoading = true;
 
-    this.setStore({veToken: await this._getVeTokenBase()});
-    this.setStore({routeAssets: ROUTE_ASSETS});
-    this.setStore({baseAssets: await getBaseAssets()});
-    await this.getVestNFTs();
-    await this.refreshPairs()
-    await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
-    await this._getBaseAssetInfo(await this.getWeb3(), this.getAccount());
+      this.setStore({
+        govToken: {
+          address: CONTRACTS.GOV_TOKEN_ADDRESS,
+          name: CONTRACTS.GOV_TOKEN_NAME,
+          symbol: CONTRACTS.GOV_TOKEN_SYMBOL,
+          decimals: CONTRACTS.GOV_TOKEN_DECIMALS,
+          logoURI: CONTRACTS.GOV_TOKEN_LOGO,
+        }
+      });
 
-    this.emitter.emit(ACTIONS.UPDATED);
-    this.emitter.emit(ACTIONS.CONFIGURED_SS);
+      this.setStore({veToken: await this._getVeTokenBase()});
+      this.setStore({routeAssets: ROUTE_ASSETS});
+      this.setStore({baseAssets: await getBaseAssets()});
+      await this.getVestNFTs();
+      await this.refreshPairs();
+      await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
+      await this._getBaseAssetInfo(await this.getWeb3(), this.getAccount());
+
+      this.emitter.emit(ACTIONS.UPDATED);
+      this.emitter.emit(ACTIONS.CONFIGURED_SS);
+    } finally {
+      this.configurationLoading = false;
+    }
   };
 
   getStore = (index) => {
@@ -230,7 +245,7 @@ class Store {
       pairs,
       await stores.accountStore.getMulticall(),
       this.getStore("baseAssets"),
-      this.getStore("vestNFTs")
+      this.getStore("vestNFTs") ?? []
     );
     await enrichAdditionalApr(pairs)
     this.setStore({pairs: pairs});
@@ -266,7 +281,7 @@ class Store {
   };
 
   getNFTByID = async (id) => {
-    const existNfts = this.getStore("vestNFTs");
+    const existNfts = this.getStore("vestNFTs") ?? [];
     const nft = getNftById(id, existNfts);
     if (nft !== null) {
       return nft;
@@ -346,7 +361,7 @@ class Store {
     const baseAssets = this.getStore("baseAssets");
     await getBalancesForBaseAssets(web3, account, baseAssets, await stores.accountStore.getMulticall())
     this.setStore({baseAssets});
-    this.emitter.emit(ACTIONS.UPDATED);
+    // this.emitter.emit(ACTIONS.UPDATED);
   };
 
   _refreshAssetBalance = async (web3, account, assetAddress) => {
@@ -385,7 +400,7 @@ class Store {
       this.getStore("veToken"),
       this.getStore("govToken"),
       this.getStore("vestNFTs"),
-      this.getStore("baseAssets"),
+      this.getStore("baseAssets") ?? [],
       await stores.accountStore.getMulticall(),
     );
     this.setStore({rewards});

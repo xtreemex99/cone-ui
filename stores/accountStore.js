@@ -65,9 +65,9 @@ class Store {
     window.ethereum.on('accountsChanged', async function (accounts) {
       const account = accounts[0]
       that.setStore({account: account.address,});
-      that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,});
       that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
       that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
+      setTimeout(() => that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,}), 1000)
     });
 
     window.ethereum.on('chainChanged', async function (chainId) {

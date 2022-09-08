@@ -9,8 +9,6 @@ import {ethers} from 'ethers'
 
 const {CONNECTION_CONNECTED,} = ACTIONS;
 
-let loaded = false;
-
 export const WalletConnect = (props) => {
   useEffect(() => {
     if (window.localStorage.getItem('WEB3_CONNECT_CACHED_PROVIDER')) {
@@ -88,12 +86,7 @@ async function connect() {
     },
   });
 
-  // need to load only once when the app was opened
-  // other updates should come from account/network changes
-  if (!loaded) {
     updateGeneralStore();
-    loaded = true;
-  }
   stores.emitter.emit(CONNECTION_CONNECTED);
   stores.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
 
