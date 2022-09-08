@@ -73,7 +73,7 @@ export default function ssWhitelist() {
     const ssUpdated = () => {
       setVeToken(stores.stableSwapStore.getStore('veToken'));
 
-      const nfts = stores.stableSwapStore.getStore('vestNFTs');
+      const nfts = stores.stableSwapStore.getStore('vestNFTs') ?? [];
       setNFTS(nfts);
 
       if (nfts?.length > 0) {

@@ -159,7 +159,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   const ssUpdated = async () => {
     // console.log('LIQUI update')
     const storeAssetOptions = stores.stableSwapStore.getStore("baseAssets");
-    const nfts = stores.stableSwapStore.getStore("vestNFTs");
+    const nfts = stores.stableSwapStore.getStore("vestNFTs") ?? [];
     const veTok = stores.stableSwapStore.getStore("veToken");
     const pairs = stores.stableSwapStore.getStore("pairs");
 
