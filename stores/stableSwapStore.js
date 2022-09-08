@@ -171,7 +171,7 @@ class Store {
 
   // DISPATCHER FUNCTIONS
   configure = async () => {
-    // console.log('configure')
+    console.log('configure')
     if(this.configurationLoading || this.getAccount() === null) {
       return;
     }
