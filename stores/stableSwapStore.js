@@ -171,8 +171,8 @@ class Store {
 
   // DISPATCHER FUNCTIONS
   configure = async () => {
-    console.log('configure')
-    if(this.configurationLoading || this.getAccount() === null) {
+    // console.log('configure')
+    if(this.configurationLoading || this.getAccount() === null || stores.accountStore.getStore("chainInvalid")) {
       return;
     }
     try {
