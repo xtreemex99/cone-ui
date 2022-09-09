@@ -95,10 +95,11 @@ export const swap = async (
     const sendSlippage = BigNumber(100).minus(_slippage).div(100);
 
     const sendFromAmount = parseBN(fromAmount, fromAsset.decimals);
-    const sendMinAmountOut = BigNumber(quote.output.finalValue)
-      .times(10 ** toAsset.decimals)
+    const sendMinAmountOut = BigNumber(sendFromAmount)
       .times(sendSlippage)
       .toFixed(0);
+    console.log("fromAmount", fromAmount, sendFromAmount)
+    console.log("sendMinAmountOut", fromAmount, sendMinAmountOut)
 
     const deadline = "" + moment().add(600, "seconds").unix();
 

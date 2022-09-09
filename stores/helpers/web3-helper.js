@@ -72,7 +72,7 @@ export const callContractWait = async (
         });
     })
     .catch((ex) => {
-      console.log("Call tx error", ex);
+      console.log("Call tx error", contract._address, method, params, ex);
       if (ex.message) {
         emitNotificationRejected(emitter, uuid, ex.message)
         return callback(ex.message);

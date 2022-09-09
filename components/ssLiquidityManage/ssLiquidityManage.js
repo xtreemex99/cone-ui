@@ -1781,7 +1781,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   const [openSelectToken, setOpenSelectToken] = useState(false);
 
   const openSelect = () => {
-    setOpenSelectToken(!openSelectToken);
+    setOpenSelectToken(true);
   };
 
   const closeSelect = () => {
@@ -1790,9 +1790,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
   const selectArrow = () => {
     return (
-      <ClickAwayListener onClickAway={closeSelect}>
+      // <ClickAwayListener onClickAway={closeSelect}>
         <div
-          onClick={openSelect}
+          // onClick={openSelect}
           className={[
             classes.slippageIconContainer,
             openSelectToken ? classes["selectTokenIconContainer--active"] : "",
@@ -1803,14 +1803,14 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             <path d="M16.9201 0.950012L10.4001 7.47001C9.63008 8.24001 8.37008 8.24001 7.60008 7.47001L1.08008 0.950012" stroke="#D3F85A" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-      </ClickAwayListener>
+      // </ClickAwayListener>
     );
   };
 
   const renderTokenSelect = () => {
     return (
       <Select
-          onClick={openSelect}
+          // onClick={openSelect}
         className={[
           classes.tokenSelect,
           classes[`tokenSelect--${appTheme}`],
@@ -1850,6 +1850,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
           },
         }}
         open={openSelectToken}
+        onClose={closeSelect}
+        onOpen={openSelect}
         onChange={handleChange}
         IconComponent={selectArrow}
         inputProps={{
