@@ -47,7 +47,7 @@ export const loadNfts = async (account, web3, tokenID) => {
     )).filter((nft) => !!nft);
   } catch (ex) {
     console.log("Error load veNFTs", ex);
-    return [];
+    throw ex;
   }
 };
 
@@ -59,6 +59,7 @@ export async function getVeApr() {
     }
   } catch (e) {
     console.log("Error get ve apr", e);
+    throw e;
   }
   return 0;
 }

@@ -184,8 +184,8 @@ const getVestVotesSubgraph = async (
 
     emitter.emit(ACTIONS.VEST_VOTES_RETURNED, votes);
   } catch (ex) {
-    console.error(ex);
-    emitter.emit(ACTIONS.ERROR, ex);
+    console.error("Error load votes from subgraph", ex);
+    throw ex;
   }
 };
 
@@ -246,7 +246,7 @@ const getVestVotesOnChain = async (
     }
     emitter.emit(ACTIONS.VEST_VOTES_RETURNED, votes);
   } catch (ex) {
-    console.error(ex);
-    emitter.emit(ACTIONS.ERROR, ex);
+    console.error("Error load votes", ex);
+    throw ex
   }
 };

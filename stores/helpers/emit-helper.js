@@ -31,5 +31,9 @@ function emitNotification(emitter, action, uuid, description, status, error, txH
 }
 
 export async function emitNewNotifications(emitter, transactions) {
-  emitter.emit(ACTIONS.TX_ADDED, {transactions});
+  await emitter.emit(ACTIONS.TX_ADDED, {transactions});
+}
+
+export async function emitError(emitter, error) {
+  await emitter.emit(ACTIONS.ERROR, error);
 }
