@@ -165,7 +165,7 @@ export const getBaseAssets = async () => {
     return result.map(asset => Object.assign({}, asset));
   } catch (ex) {
     console.log("Error load base assets", ex);
-    return [];
+    throw ex;
   }
 };
 
@@ -203,6 +203,7 @@ export const getBalancesForBaseAssets = async (web3, account, baseAssets, multic
     })
   } catch (ex) {
     console.log("Get base asset info error", ex);
+    throw ex;
   }
 };
 

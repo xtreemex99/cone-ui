@@ -28,6 +28,7 @@ import {
   getRewardBalances
 } from "./helpers/reward-helper";
 import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
+import {emitError} from "./helpers/emit-helper";
 
 class Store {
 
@@ -185,6 +186,8 @@ class Store {
     console.log('configure ', this.id)
     try {
       this.configurationLoading = true;
+
+      // remove old values
       this.setStore({
         baseAssets: [],
         govToken: null,
@@ -211,7 +214,7 @@ class Store {
 
       this.setStore({veToken: await this._getVeTokenBase()});
       this.setStore({routeAssets: ROUTE_ASSETS});
-      this.setStore({baseAssets: await getBaseAssets()});
+      await this.loadBaseAssets()
       await this.getVestNFTs();
       await this.refreshPairs();
       await this._refreshGovTokenInfo(await this.getWeb3(), this.getUserAddress());
@@ -256,39 +259,54 @@ class Store {
   ////////////////////////////////////////////////////////////////
 
   refreshPairs = async () => {
-    let pairs = this.getStore("pairs");
-    if (!pairs || pairs.length === 0) {
-      pairs = await getPairs();
+    try {
+      let pairs = this.getStore("pairs");
+      if (!pairs || pairs.length === 0) {
+        pairs = await getPairs();
+      }
+      await enrichPairInfo(
+        await this.getWeb3(),
+        this.getUserAddress(),
+        pairs,
+        await stores.accountStore.getMulticall(),
+        this.getStore("baseAssets"),
+        this.getStore("vestNFTs") ?? []
+      );
+      await enrichAdditionalApr(pairs)
+      this.setStore({pairs: pairs});
+    } catch (e) {
+      console.error("Error refresh pairs", e);
+      await emitError(this.emitter, "Error refresh pairs")
     }
-    await enrichPairInfo(
-      await this.getWeb3(),
-      this.getUserAddress(),
-      pairs,
-      await stores.accountStore.getMulticall(),
-      this.getStore("baseAssets"),
-      this.getStore("vestNFTs") ?? []
-    );
-    await enrichAdditionalApr(pairs)
-    this.setStore({pairs: pairs});
   };
 
   getPairByAddress = async (pairAddress) => {
-    const pairs = this.getStore("pairs");
-    const pair = await getAndUpdatePair(pairAddress, await this.getWeb3(), this.getUserAddress(), pairs);
-    this.setStore({pairs: pairs ?? []});
-    return pair;
+    try {
+      const pairs = this.getStore("pairs");
+      const pair = await getAndUpdatePair(pairAddress, await this.getWeb3(), this.getUserAddress(), pairs);
+      this.setStore({pairs: pairs ?? []});
+      return pair;
+    } catch (e) {
+      console.error("Error getting pair", e);
+      await emitError(this.emitter, "Error get pair by address")
+    }
   };
 
   getPair = async (addressA, addressB, stab) => {
-    return await loadPair(
-      addressA,
-      addressB,
-      stab,
-      await this.getWeb3(),
-      this.getUserAddress(),
-      this.getStore("pairs"),
-      this.getStore("baseAssets")
-    );
+    try {
+      return await loadPair(
+        addressA,
+        addressB,
+        stab,
+        await this.getWeb3(),
+        this.getUserAddress(),
+        this.getStore("pairs"),
+        this.getStore("baseAssets")
+      );
+    } catch (e) {
+      console.error("Error get pair by assets", e);
+      await emitError(this.emitter, "Error get pair by assets")
+    }
   };
 
   //////////////////////////////////////////////////////////////
@@ -296,56 +314,90 @@ class Store {
   //////////////////////////////////////////////////////////////
 
   _getVeTokenBase = async () => {
-    return {
-      address: CONTRACTS.VE_TOKEN_ADDRESS,
-      name: CONTRACTS.VE_TOKEN_NAME,
-      symbol: CONTRACTS.VE_TOKEN_SYMBOL,
-      decimals: CONTRACTS.VE_TOKEN_DECIMALS,
-      logoURI: CONTRACTS.VE_TOKEN_LOGO,
-      veDistApr: await getVeApr(),
-    };
+    try {
+      return {
+        address: CONTRACTS.VE_TOKEN_ADDRESS,
+        name: CONTRACTS.VE_TOKEN_NAME,
+        symbol: CONTRACTS.VE_TOKEN_SYMBOL,
+        decimals: CONTRACTS.VE_TOKEN_DECIMALS,
+        logoURI: CONTRACTS.VE_TOKEN_LOGO,
+        veDistApr: await getVeApr(),
+      };
+    } catch (e) {
+      console.error("Error load ve info", e);
+      await emitError(this.emitter, "Error load ve info")
+    }
   };
 
   getNFTByID = async (id) => {
-    const existNfts = this.getStore("vestNFTs") ?? [];
-    const nft = getNftById(id, existNfts);
-    if (nft !== null) {
-      return nft;
+    try {
+      const existNfts = this.getStore("vestNFTs") ?? [];
+      const nft = getNftById(id, existNfts);
+      if (nft !== null) {
+        return nft;
+      }
+      const freshNft = await loadNfts(this.getUserAddress(), await this.getWeb3(), id);
+      if (freshNft.length > 0) {
+        existNfts.push(...freshNft)
+      }
+      return getNftById(id, existNfts);
+    } catch (e) {
+      console.log("Error get NFT by ID", e);
+      await emitError(this.emitter, "Error get NFT by ID")
     }
-    const freshNft = await loadNfts(this.getUserAddress(), await this.getWeb3(), id);
-    if (freshNft.length > 0) {
-      existNfts.push(...freshNft)
-    }
-    return getNftById(id, existNfts);
   };
 
   getVestNFTs = async () => {
-    const nfts = await loadNfts(this.getUserAddress(), await this.getWeb3());
-    this.setStore({vestNFTs: nfts});
-    this.emitter.emit(ACTIONS.VEST_NFTS_RETURNED, nfts);
-    return nfts;
+    try {
+      const nfts = await loadNfts(this.getUserAddress(), await this.getWeb3());
+      this.setStore({vestNFTs: nfts});
+      this.emitter.emit(ACTIONS.VEST_NFTS_RETURNED, nfts);
+      return nfts;
+    } catch (e) {
+      console.log("Error get Vest NFTs", e);
+      await emitError(this.emitter, "Error get Vest NFTs")
+    }
   };
 
   getVestVotes = async (payload) => {
-    await getVestVotes(
-      payload,
-      this.getUserAddress(),
-      await this.getWeb3(),
-      this.emitter,
-      this.getStore("pairs"),
-      await stores.accountStore.getMulticall(),
-      false // set true if any issues with subgraph
-    )
+    try {
+      await getVestVotes(
+        payload,
+        this.getUserAddress(),
+        await this.getWeb3(),
+        this.emitter,
+        this.getStore("pairs"),
+        await stores.accountStore.getMulticall(),
+        false // set true if any issues with subgraph
+      );
+    } catch (e) {
+      console.log("Error get Vest Votes", e);
+      await emitError(this.emitter, "Error get Vest Votes")
+    }
   };
 
   //////////////////////////////////////////////////////////////
   //                   ASSETS
   //////////////////////////////////////////////////////////////
 
+  async loadBaseAssets() {
+    try {
+      this.setStore({baseAssets: await getBaseAssets()});
+    } catch (e) {
+      console.log("Error get Base Assets", e);
+      await emitError(this.emitter, "Error load Base Assets")
+    }
+  }
+
   removeBaseAsset = (asset) => {
-    const baseAssets = removeDuplicate(removeBaseAsset(asset, this.getStore("baseAssets")));
-    this.setStore({baseAssets: baseAssets});
-    this.emitter.emit(ACTIONS.BASE_ASSETS_UPDATED, baseAssets);
+    try {
+      const baseAssets = removeDuplicate(removeBaseAsset(asset, this.getStore("baseAssets")));
+      this.setStore({baseAssets: baseAssets});
+      this.emitter.emit(ACTIONS.BASE_ASSETS_UPDATED, baseAssets);
+    } catch (e) {
+      console.log("Error remove base asset", e);
+      emitError(this.emitter, "Error remove base asset")
+    }
   };
 
   getBaseAsset = async (address, save, getBalance) => {
@@ -366,6 +418,7 @@ class Store {
       return newBaseAsset;
     } catch (ex) {
       console.log("Get base asset error", ex);
+      await emitError(this.emitter, "Error load base asset")
       return null;
     }
   };
@@ -380,14 +433,19 @@ class Store {
       this.emitter.emit(ACTIONS.GOVERNANCE_ASSETS_UPDATED, govToken);
     } catch (ex) {
       console.log("Get gov token info error", ex);
+      await emitError(this.emitter, "Error load governance token")
     }
   };
 
   _getBaseAssetInfo = async (web3, account) => {
-    const baseAssets = this.getStore("baseAssets");
-    await getBalancesForBaseAssets(web3, account, baseAssets, await stores.accountStore.getMulticall())
-    this.setStore({baseAssets});
-    // this.emitter.emit(ACTIONS.UPDATED);
+    try {
+      const baseAssets = this.getStore("baseAssets");
+      await getBalancesForBaseAssets(web3, account, baseAssets, await stores.accountStore.getMulticall())
+      this.setStore({baseAssets});
+    } catch (e) {
+      console.log("Error load governance token", e);
+      await emitError(this.emitter, "Error load governance token")
+    }
   };
 
   _refreshAssetBalance = async (web3, account, assetAddress) => {
@@ -409,6 +467,7 @@ class Store {
       this.emitter.emit(ACTIONS.UPDATED);
     } catch (ex) {
       console.log("Refresh balance error", ex);
+      await emitError(this.emitter, "Error refresh asset balances")
     }
   };
 
@@ -417,20 +476,25 @@ class Store {
   //////////////////////////////////////////////////////////////
 
   getRewardBalances = async (payload) => {
-    const rewards = await getRewardBalances(
-      payload,
-      this.getUserAddress(),
-      await this.getWeb3(),
-      this.emitter,
-      this.getStore("pairs"),
-      this.getStore("veToken"),
-      this.getStore("govToken"),
-      this.getStore("vestNFTs"),
-      this.getStore("baseAssets") ?? [],
-      await stores.accountStore.getMulticall(),
-    );
-    this.setStore({rewards});
-    this.emitter.emit(ACTIONS.REWARD_BALANCES_RETURNED, rewards);
+    try {
+      const rewards = await getRewardBalances(
+        payload,
+        this.getUserAddress(),
+        await this.getWeb3(),
+        this.emitter,
+        this.getStore("pairs"),
+        this.getStore("veToken"),
+        this.getStore("govToken"),
+        this.getStore("vestNFTs"),
+        this.getStore("baseAssets") ?? [],
+        await stores.accountStore.getMulticall(),
+      );
+      this.setStore({rewards});
+      this.emitter.emit(ACTIONS.REWARD_BALANCES_RETURNED, rewards);
+    } catch (e) {
+      console.log("Error refresh reward balances", e);
+      await emitError(this.emitter, "Error refresh reward balances")
+    }
   };
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -799,12 +863,17 @@ class Store {
   //////////////////////////////////////////////////////////////
 
   searchWhitelist = async (payload) => {
-    await searchWhitelist(
-      payload,
-      await this.getWeb3(),
-      this.emitter,
-      async (search) => await this.getBaseAsset(search)
-    );
+    try {
+      await searchWhitelist(
+        payload,
+        await this.getWeb3(),
+        this.emitter,
+        async (search) => await this.getBaseAsset(search)
+      );
+    } catch (e) {
+      console.log("Error search whitelist tokens", e);
+      await emitError(this.emitter, "Error search whitelist tokens")
+    }
   };
 
   whitelistToken = async (payload) => {

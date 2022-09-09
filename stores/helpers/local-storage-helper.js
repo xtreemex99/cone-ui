@@ -27,7 +27,7 @@ export const removeBaseAsset = (asset, baseAssets) => {
     }
   } catch (ex) {
     console.log('removeBaseAsset error', ex);
-    return null;
+    throw ex;
   }
 };
 
@@ -43,7 +43,7 @@ export const getLocalAssets = () => {
     return localBaseAssets;
   } catch (ex) {
     console.log("Get local asset error", ex);
-    return [];
+    throw ex;
   }
 };
 

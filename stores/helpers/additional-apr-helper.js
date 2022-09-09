@@ -5,25 +5,34 @@ import {CONTRACTS} from "./../constants";
 let usdPlusBoost = null;
 
 export async function enrichAdditionalApr(pairs) {
-  if (pairs) {
-    let usdPlusResp = await usdPlusAprQuery();
-    await Promise.all(pairs.map(async pair => {
-      await usdPlusApr(pair, usdPlusResp)
-    }));
+  try {
+    if (pairs) {
+      let usdPlusResp = await usdPlusAprQuery();
+      await Promise.all(pairs.map(async pair => {
+        await usdPlusApr(pair, usdPlusResp)
+      }));
+    }
+  } catch (e) {
+    console.error("Error get additional apr", e);
   }
 }
 
 async function usdPlusAprQuery() {
-  if (usdPlusBoost === null) {
-    // usdPlusBoost = undefined;
-    const resp = await axios.get(CONTRACTS.USD_PLUS_BOOSTED_DATA_URL);
-    if (resp && resp.data) {
-      usdPlusBoost = resp;
-    } else {
-      usdPlusBoost = null
+  try {
+    if (usdPlusBoost === null) {
+      // usdPlusBoost = undefined;
+      const resp = await axios.get(CONTRACTS.USD_PLUS_BOOSTED_DATA_URL);
+      if (resp && resp.data) {
+        usdPlusBoost = resp;
+      } else {
+        usdPlusBoost = null
+      }
     }
+    return usdPlusBoost;
+  } catch (e) {
+    console.error("Error get additional apr", e);
+    return "";
   }
-  return usdPlusBoost;
 }
 
 async function usdPlusApr(pair, aprResponse) {

@@ -56,6 +56,7 @@ async function updatePairFields(pair, web3, account) {
     pair.reserve1 = formatBN(reserve1, pair.token1.decimals)
   } catch (e) {
     console.error("Update pair error", e);
+    throw e;
   }
   return pair;
 }
@@ -305,18 +306,14 @@ export const getAndUpdatePair = async (
   if (!account || !web3) {
     return null;
   }
-  try {
-    // if pair exist just update fields and return
-    const existPair = findPair(pairs, pairAddress)
-    if (existPair !== null) {
-      return updatePairFields(existPair, web3, account)
-    }
-    // if pair not exist return null, use getPair function
-    return null
-  } catch (ex) {
-    console.log(ex);
-    return null;
+
+  // if pair exist just update fields and return
+  const existPair = findPair(pairs, pairAddress)
+  if (existPair !== null) {
+    return updatePairFields(existPair, web3, account)
   }
+  // if pair not exist return null, use getPair function
+  return null
 };
 
 async function getPairsSubgraph() {
@@ -388,19 +385,14 @@ function renameTokens(pairs) {
     });
   } catch (e) {
     console.log("Error rename tokens", e);
-    return pairs;
+    throw e;
   }
 }
 
 export const getPairs = async () => {
-  try {
-    return renameTokens(await getPairsSubgraph()).filter((pair) =>
-      BLACK_LIST_TOKENS.indexOf(pair.token0.address?.toLowerCase()) === -1
-      && BLACK_LIST_TOKENS.indexOf(pair.token1.address?.toLowerCase()) === -1)
-  } catch (ex) {
-    console.log("Error get pairs", ex);
-    return [];
-  }
+  return renameTokens(await getPairsSubgraph()).filter((pair) =>
+    BLACK_LIST_TOKENS.indexOf(pair.token0.address?.toLowerCase()) === -1
+    && BLACK_LIST_TOKENS.indexOf(pair.token1.address?.toLowerCase()) === -1)
 };
 
 async function getTotalWight(web3) {
@@ -606,6 +598,7 @@ export const enrichPairInfo = async (
     mapPairInfo(pairs, ethPrice, totalWeight);
   } catch (ex) {
     console.log("Error get pair infos", ex);
+    throw e;
   }
 };
 

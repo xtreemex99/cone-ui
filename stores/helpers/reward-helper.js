@@ -257,7 +257,7 @@ export const getRewardBalances = async (
     return result;
   } catch (ex) {
     console.error("Collect rewards info error", ex);
-    emitter.emit(ACTIONS.ERROR, ex);
+    emitter.emit(ACTIONS.ERROR, "Error collect rewards info");
   }
 };
 
