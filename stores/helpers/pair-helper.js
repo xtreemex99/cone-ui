@@ -301,7 +301,7 @@ export const getAndUpdatePair = async (
   account,
   pairs
 ) => {
-  console.log(">>> GET AND UPDATE PAIR");
+  // console.log(">>> GET AND UPDATE PAIR");
   if (!account || !web3) {
     return null;
   }
