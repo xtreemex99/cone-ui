@@ -22,8 +22,8 @@ export function parseBN(num, decimals = '18') {
   }
   try {
     return BigNumber(num)
-      .times(BigNumber(10).pow(BigNumber(parseInt(decimals))))
-      .toFixed(0);
+      .times(BigNumber(10).pow(parseInt(decimals)))
+      .toFixed(0, BigNumber.ROUND_DOWN);
   } catch (e) {
     console.info("Error parse bn: ", num)
     throw e;

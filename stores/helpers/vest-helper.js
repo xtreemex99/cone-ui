@@ -499,7 +499,7 @@ export const merge = async (
     let notifications = [];
     notifications.push({
       uuid: allowanceTXID,
-      description: `Checking Allowance for veDYST to Merge`,
+      description: `Checking Allowance for veCONE to Merge`,
       status: "WAITING",
     });
 
@@ -515,7 +515,7 @@ export const merge = async (
 
     notifications.push({
       uuid: mergeTXID,
-      description: `Merge veDYST`,
+      description: `Merge veCONE`,
       status: "WAITING",
     });
 
@@ -533,19 +533,19 @@ export const merge = async (
     if (!isApproved) {
       emitter.emit(ACTIONS.TX_STATUS, {
         uuid: allowanceTXID,
-        description: `Allow the veDYST For Merge`,
+        description: `Allow the veCONE For Merge`,
       });
     } else {
       emitter.emit(ACTIONS.TX_STATUS, {
         uuid: allowanceTXID,
-        description: `Allowance on veDYST sufficient`,
+        description: `Allowance on veCONE sufficient`,
         status: "DONE",
       });
     }
     if (bribesLength !== 0) {
       emitter.emit(ACTIONS.TX_STATUS, {
         uuid: voteResetTXID,
-        description: `Reset the veDYST Votes`,
+        description: `Reset the veCONE Votes`,
       });
     } else {
       emitter.emit(ACTIONS.TX_STATUS, {
