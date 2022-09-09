@@ -34,6 +34,10 @@ export default function Unlock({ nft, govToken, veToken }) {
       setLockLoading(false);
     };
 
+    window.addEventListener("resize", () => {
+      setWindowWidth(window.innerWidth);
+    });
+
     stores.emitter.on(ACTIONS.ERROR, errorReturned);
     stores.emitter.on(ACTIONS.WITHDRAW_VEST_RETURNED, lockReturned);
     return () => {
@@ -43,10 +47,6 @@ export default function Unlock({ nft, govToken, veToken }) {
         lockReturned
       );
     };
-
-    window.addEventListener("resize", () => {
-      setWindowWidth(window.innerWidth);
-    });
   }, []);
 
   const onWithdraw = () => {

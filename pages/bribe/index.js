@@ -54,7 +54,7 @@ function Bribes({ changeTheme }) {
 
   return (
     <div className={classes.ffContainer}>
-      {account && account.address ?
+      {account ?
         <div className={classes.connected}>
           <SSBribes />
         </div>
@@ -70,7 +70,7 @@ function Bribes({ changeTheme }) {
              className={classes.buttonConnect}
              variant="contained"
              onClick={onAddressClicked}>
-             {account && account.address && <div className={`${classes.accountIcon} ${classes.metamask}`}></div>}
+             {account && <div className={`${classes.accountIcon} ${classes.metamask}`}></div>}
              <Typography>Connect Wallet to Continue</Typography>
            </Button>
          </Paper>

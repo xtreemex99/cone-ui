@@ -109,8 +109,8 @@ const merge = () => {
   const [secondSelectedNft, setSecondSelectedNft] = useState();
   const [lockloader, setLockLoading] = useState(false);
 
-  console.log('firstSelectedNft', firstSelectedNft)
-  console.log('secondSelectedNft', secondSelectedNft)
+  // console.log('firstSelectedNft', firstSelectedNft)
+  // console.log('secondSelectedNft', secondSelectedNft)
 
   // const openSelect1 = () => {
   //   setOpenSelectToken1(!openSelectToken1);

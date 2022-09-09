@@ -11,7 +11,7 @@ export const AddToken = (props) => {
 
   const handleAddToMM = async (value) => {
     try {
-      const wasAdded = await window.ethereum.request({
+      await window.ethereum.request({
         method: "wallet_watchAsset",
         params: {
           type: "ERC20",
@@ -23,12 +23,6 @@ export const AddToken = (props) => {
           },
         },
       });
-
-      if (wasAdded) {
-        console.log("Thanks for your interest!");
-      } else {
-        console.log(`${value?.symbol} Coin has not been added`);
-      }
     } catch (error) {
       console.log(error);
     }

@@ -73,7 +73,7 @@ export default function ssWhitelist() {
     const ssUpdated = () => {
       setVeToken(stores.stableSwapStore.getStore('veToken'));
 
-      const nfts = stores.stableSwapStore.getStore('vestNFTs');
+      const nfts = stores.stableSwapStore.getStore('vestNFTs') ?? [];
       setNFTS(nfts);
 
       if (nfts?.length > 0) {
@@ -89,6 +89,9 @@ export default function ssWhitelist() {
     const errorReturned = () => {
       setWhitelistLoading(false);
     };
+
+    // need to call for case when we came from already loaded pages
+    ssUpdated();
 
     stores.emitter.on(ACTIONS.ERROR, errorReturned);
     stores.emitter.on(ACTIONS.UPDATED, ssUpdated);
@@ -409,11 +412,11 @@ export default function ssWhitelist() {
               endAdornment: <InputAdornment position="end">
                 <div className={classes.searchInputIcon}>
                   <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <div style={{position: 'relative'}}>
                     <svg style={{position: 'absolute', top: 8, right: 0,}} width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 3L1 1" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M3 3L1 1" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                 </div>

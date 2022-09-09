@@ -9,7 +9,7 @@ import stores from "../../stores";
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
 import Loader from "../../ui/Loader";
 
-const { ERROR, CONNECTION_DISCONNECTED, CONNECTION_CONNECTED, CONFIGURE_SS } =
+const { ERROR, CONNECTION_DISCONNECTED, CONNECTION_CONNECTED } =
   ACTIONS;
 
 const styles = (theme) => ({
@@ -99,10 +99,10 @@ class Unlock extends Component {
   };
 
   connectionConnected = () => {
-    stores.dispatcher.dispatch({
-      type: CONFIGURE_SS,
-      content: { connected: true },
-    });
+    // stores.dispatcher.dispatch({
+    //   type: CONFIGURE_SS,
+    //   content: { connected: true },
+    // });
 
     if (this.props.closeModal != null) {
       this.props.closeModal();
@@ -110,10 +110,10 @@ class Unlock extends Component {
   };
 
   connectionDisconnected = () => {
-    stores.dispatcher.dispatch({
-      type: CONFIGURE_SS,
-      content: { connected: false },
-    });
+    // stores.dispatcher.dispatch({
+    //   type: CONFIGURE_SS,
+    //   content: { connected: false },
+    // });
     if (this.props.closeModal != null) {
       this.props.closeModal();
     }
@@ -132,12 +132,6 @@ class Unlock extends Component {
       </div>
     );
   }
-}
-
-function getLibrary(provider) {
-  const library = new Web3Provider(provider);
-  library.pollingInterval = 8000;
-  return library;
 }
 
 async function onConnectionClicked(
@@ -165,17 +159,6 @@ async function onConnectionClicked(
   }
 }
 
-function onDeactivateClicked(deactivate, connector) {
-  if (deactivate) {
-    deactivate();
-  }
-  if (connector && connector.close) {
-    connector.close();
-  }
-  stores.accountStore.setStore({ account: {}, web3context: null });
-  stores.emitter.emit(CONNECTION_DISCONNECTED);
-}
-
 function MyComponent(props) {
   const context = useWeb3React();
   const localContext = stores.accountStore.getStore("web3context");
@@ -200,10 +183,6 @@ function MyComponent(props) {
 
   React.useEffect(() => {
     if (account && active && library) {
-      stores.accountStore.setStore({
-        account: { address: account },
-        web3context: context,
-      });
       stores.emitter.emit(CONNECTION_CONNECTED);
       stores.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
     }

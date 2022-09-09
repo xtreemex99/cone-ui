@@ -27,124 +27,8 @@ import { ArrowDropDown, ExpandLess, ExpandMore } from "@mui/icons-material";
 import TablePaginationActions from "../table-pagination/table-pagination";
 import { formatSymbol } from "../../utils";
 import css from './ssRewardsTable.module.css';
+import {descendingComparator, getComparator, stableSort, headCells} from "./reward-ui-utils";
 
-function descendingComparator(a, b, orderBy) {
-  if (!a || !b) {
-    return 0;
-  }
-
-  let aAmount = 0;
-  let bAmount = 0;
-
-  switch (orderBy) {
-    case "reward":
-      if (b?.rewardType < a?.rewardType) {
-        return -1;
-      }
-      if (b?.rewardType > a?.rewardType) {
-        return 1;
-      }
-      if (b?.symbol < a?.symbol) {
-        return -1;
-      }
-      if (b?.symbol > a?.symbol) {
-        return 1;
-      }
-      return 0;
-
-    case "balance":
-      if (a?.rewardType === "Bribe") {
-        aAmount = a?.gauge?.balance;
-      } else {
-        aAmount = a?.balance;
-      }
-
-      if (b?.rewardType === "Bribe") {
-        bAmount = b?.gauge?.balance;
-      } else {
-        bAmount = b?.balance;
-      }
-
-      if (BigNumber(bAmount).lt(aAmount)) {
-        return -1;
-      }
-      if (BigNumber(bAmount).gt(aAmount)) {
-        return 1;
-      }
-      return 0;
-
-    case "earned":
-      if (a?.rewardType === "Bribe") {
-        aAmount = a?.gauge?.bribes?.length;
-      } else {
-        aAmount = 2;
-      }
-
-      if (b.rewardType === "Bribe") {
-        bAmount = b?.gauge?.bribes?.length;
-      } else {
-        bAmount = 2;
-      }
-
-      if (BigNumber(bAmount).lt(aAmount)) {
-        return -1;
-      }
-      if (BigNumber(bAmount).gt(aAmount)) {
-        return 1;
-      }
-      return 0;
-
-    default:
-      return 0;
-  }
-}
-
-function getComparator(order, orderBy) {
-  return order === "desc"
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
-}
-
-const headCells = [
-  {
-    id: "reward",
-    numeric: false,
-    disablePadding: false,
-    label: "Reward Source",
-    isSticky: true,
-    isHideInDetails: true,
-  },
-  {
-    id: "balance",
-    numeric: true,
-    disablePadding: false,
-    label: "Your Position",
-  },
-  {
-    id: "earned",
-    numeric: true,
-    disablePadding: false,
-    label: "You Earned",
-    isHideInDetails: true,
-  },
-  {
-    id: "bruh",
-    numeric: true,
-    disablePadding: false,
-    label: "Actions",
-    isHideInDetails: true,
-  },
-];
 
 const StickyTableCell = styled(TableCell)(({ theme, appTheme }) => ({
   color: appTheme === "dark" ? "#C6CDD2 !important" : "#325569 !important",
@@ -733,8 +617,6 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
     setWindowWidth(window.innerWidth);
   });
 
-  // console.log('rewards', rewards);
-
   return (
     <>
       {windowWidth >= 806 && (
@@ -1023,12 +905,19 @@ export default function EnhancedTable({ rewards, vestNFTs, tokenID }) {
 
                               {row &&
                                 row.rewardType === "Reward" &&
-                                tableCellContent(
-                                  parseFloat(row.gauge.rewardsEarned).toFixed(4),
-                                  null,
-                                  "CONE",
-                                  null
-                                )}
+                                row.gauge &&
+                                row.gauge.rewardTokens &&
+                                row.gauge.rewardTokens.map((rt) => {
+                                  return tableCellContent(
+                                    parseFloat(rt.rewardsEarned).toFixed(4),
+                                    null,
+                                    rt.token?.symbol,
+                                    null,
+                                    rt && rt.token && rt.token.logoURI
+                                      ? rt.token.logoURI
+                                      : `/tokens/unknown-logo--${appTheme}.svg`
+                                  );
+                                })}
 
                               {row &&
                                 row.rewardType === "Distribution" &&

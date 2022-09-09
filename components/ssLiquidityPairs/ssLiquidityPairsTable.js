@@ -66,13 +66,13 @@ function descendingComparator(a, b, orderBy) {
       return 0;
     case "apr":
       if (BigNumber(b?.gauge?.apr).lt(BigNumber(a?.gauge?.apr))) {
-        console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "1");
+        // console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "1");
         return -1;
       }
       if (
         BigNumber(b?.gauge?.apr).div(100).times(40).gt(BigNumber(a?.gauge?.apr))
       ) {
-        console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "2");
+        // console.log(BigNumber(b?.gauge?.apr), BigNumber(a?.gauge?.apr), "2");
         return 1;
       }
       return 0;
@@ -1243,14 +1243,14 @@ const EnhancedTableToolbar = (props) => {
                   aria-label="filter list">
                 {windowWidth >= 806 && open &&
                     <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="0.5" y="0.5" width="71" height="71" rx="11.5" fill="#779BF4" fill-opacity="1"/>
+                      <rect x="0.5" y="0.5" width="71" height="71" rx="11.5" fill="#779BF4" fillOpacity="1"/>
                       <path d="M37.125 35.625V44.25C37.125 44.5484 37.0065 44.8345 36.7955 45.0455C36.5845 45.2565 36.2984 45.375 36 45.375C35.7016 45.375 35.4155 45.2565 35.2045 45.0455C34.9935 44.8345 34.875 44.5484 34.875 44.25V35.625C34.875 35.3266 34.9935 35.0405 35.2045 34.8295C35.4155 34.6185 35.7016 34.5 36 34.5C36.2984 34.5 36.5845 34.6185 36.7955 34.8295C37.0065 35.0405 37.125 35.3266 37.125 35.625ZM42.75 42C42.4516 42 42.1655 42.1185 41.9545 42.3295C41.7435 42.5405 41.625 42.8266 41.625 43.125V44.25C41.625 44.5484 41.7435 44.8345 41.9545 45.0455C42.1655 45.2565 42.4516 45.375 42.75 45.375C43.0484 45.375 43.3345 45.2565 43.5455 45.0455C43.7565 44.8345 43.875 44.5484 43.875 44.25V43.125C43.875 42.8266 43.7565 42.5405 43.5455 42.3295C43.3345 42.1185 43.0484 42 42.75 42ZM45 38.25H43.875V27.75C43.875 27.4516 43.7565 27.1655 43.5455 26.9545C43.3345 26.7435 43.0484 26.625 42.75 26.625C42.4516 26.625 42.1655 26.7435 41.9545 26.9545C41.7435 27.1655 41.625 27.4516 41.625 27.75V38.25H40.5C40.2016 38.25 39.9155 38.3685 39.7045 38.5795C39.4935 38.7905 39.375 39.0766 39.375 39.375C39.375 39.6734 39.4935 39.9595 39.7045 40.1705C39.9155 40.3815 40.2016 40.5 40.5 40.5H45C45.2984 40.5 45.5845 40.3815 45.7955 40.1705C46.0065 39.9595 46.125 39.6734 46.125 39.375C46.125 39.0766 46.0065 38.7905 45.7955 38.5795C45.5845 38.3685 45.2984 38.25 45 38.25ZM29.25 39C28.9516 39 28.6655 39.1185 28.4545 39.3295C28.2435 39.5405 28.125 39.8266 28.125 40.125V44.25C28.125 44.5484 28.2435 44.8345 28.4545 45.0455C28.6655 45.2565 28.9516 45.375 29.25 45.375C29.5484 45.375 29.8345 45.2565 30.0455 45.0455C30.2565 44.8345 30.375 44.5484 30.375 44.25V40.125C30.375 39.8266 30.2565 39.5405 30.0455 39.3295C29.8345 39.1185 29.5484 39 29.25 39ZM31.5 35.25H30.375V27.75C30.375 27.4516 30.2565 27.1655 30.0455 26.9545C29.8345 26.7435 29.5484 26.625 29.25 26.625C28.9516 26.625 28.6655 26.7435 28.4545 26.9545C28.2435 27.1655 28.125 27.4516 28.125 27.75V35.25H27C26.7016 35.25 26.4155 35.3685 26.2045 35.5795C25.9935 35.7905 25.875 36.0766 25.875 36.375C25.875 36.6734 25.9935 36.9595 26.2045 37.1705C26.4155 37.3815 26.7016 37.5 27 37.5H31.5C31.7984 37.5 32.0845 37.3815 32.2955 37.1705C32.5065 36.9595 32.625 36.6734 32.625 36.375C32.625 36.0766 32.5065 35.7905 32.2955 35.5795C32.0845 35.3685 31.7984 35.25 31.5 35.25ZM38.25 30.75H37.125V27.75C37.125 27.4516 37.0065 27.1655 36.7955 26.9545C36.5845 26.7435 36.2984 26.625 36 26.625C35.7016 26.625 35.4155 26.7435 35.2045 26.9545C34.9935 27.1655 34.875 27.4516 34.875 27.75V30.75H33.75C33.4516 30.75 33.1655 30.8685 32.9545 31.0795C32.7435 31.2905 32.625 31.5766 32.625 31.875C32.625 32.1734 32.7435 32.4595 32.9545 32.6705C33.1655 32.8815 33.4516 33 33.75 33H38.25C38.5484 33 38.8345 32.8815 39.0455 32.6705C39.2565 32.4595 39.375 32.1734 39.375 31.875C39.375 31.5766 39.2565 31.2905 39.0455 31.0795C38.8345 30.8685 38.5484 30.75 38.25 30.75Z" fill="#E4E9F4"/>
                       <rect x="0.5" y="0.5" width="71" height="71" rx="11.5" stroke="#779BF4"/>
                     </svg>
                 }
                 {windowWidth >= 806 && !open &&
                     <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="0.5" y="0.5" width="71" height="71" rx="11.5" fill="#779BF4" fill-opacity="0.15"/>
+                      <rect x="0.5" y="0.5" width="71" height="71" rx="11.5" fill="#779BF4" fillOpacity="0.15"/>
                       <path d="M37.125 35.625V44.25C37.125 44.5484 37.0065 44.8345 36.7955 45.0455C36.5845 45.2565 36.2984 45.375 36 45.375C35.7016 45.375 35.4155 45.2565 35.2045 45.0455C34.9935 44.8345 34.875 44.5484 34.875 44.25V35.625C34.875 35.3266 34.9935 35.0405 35.2045 34.8295C35.4155 34.6185 35.7016 34.5 36 34.5C36.2984 34.5 36.5845 34.6185 36.7955 34.8295C37.0065 35.0405 37.125 35.3266 37.125 35.625ZM42.75 42C42.4516 42 42.1655 42.1185 41.9545 42.3295C41.7435 42.5405 41.625 42.8266 41.625 43.125V44.25C41.625 44.5484 41.7435 44.8345 41.9545 45.0455C42.1655 45.2565 42.4516 45.375 42.75 45.375C43.0484 45.375 43.3345 45.2565 43.5455 45.0455C43.7565 44.8345 43.875 44.5484 43.875 44.25V43.125C43.875 42.8266 43.7565 42.5405 43.5455 42.3295C43.3345 42.1185 43.0484 42 42.75 42ZM45 38.25H43.875V27.75C43.875 27.4516 43.7565 27.1655 43.5455 26.9545C43.3345 26.7435 43.0484 26.625 42.75 26.625C42.4516 26.625 42.1655 26.7435 41.9545 26.9545C41.7435 27.1655 41.625 27.4516 41.625 27.75V38.25H40.5C40.2016 38.25 39.9155 38.3685 39.7045 38.5795C39.4935 38.7905 39.375 39.0766 39.375 39.375C39.375 39.6734 39.4935 39.9595 39.7045 40.1705C39.9155 40.3815 40.2016 40.5 40.5 40.5H45C45.2984 40.5 45.5845 40.3815 45.7955 40.1705C46.0065 39.9595 46.125 39.6734 46.125 39.375C46.125 39.0766 46.0065 38.7905 45.7955 38.5795C45.5845 38.3685 45.2984 38.25 45 38.25ZM29.25 39C28.9516 39 28.6655 39.1185 28.4545 39.3295C28.2435 39.5405 28.125 39.8266 28.125 40.125V44.25C28.125 44.5484 28.2435 44.8345 28.4545 45.0455C28.6655 45.2565 28.9516 45.375 29.25 45.375C29.5484 45.375 29.8345 45.2565 30.0455 45.0455C30.2565 44.8345 30.375 44.5484 30.375 44.25V40.125C30.375 39.8266 30.2565 39.5405 30.0455 39.3295C29.8345 39.1185 29.5484 39 29.25 39ZM31.5 35.25H30.375V27.75C30.375 27.4516 30.2565 27.1655 30.0455 26.9545C29.8345 26.7435 29.5484 26.625 29.25 26.625C28.9516 26.625 28.6655 26.7435 28.4545 26.9545C28.2435 27.1655 28.125 27.4516 28.125 27.75V35.25H27C26.7016 35.25 26.4155 35.3685 26.2045 35.5795C25.9935 35.7905 25.875 36.0766 25.875 36.375C25.875 36.6734 25.9935 36.9595 26.2045 37.1705C26.4155 37.3815 26.7016 37.5 27 37.5H31.5C31.7984 37.5 32.0845 37.3815 32.2955 37.1705C32.5065 36.9595 32.625 36.6734 32.625 36.375C32.625 36.0766 32.5065 35.7905 32.2955 35.5795C32.0845 35.3685 31.7984 35.25 31.5 35.25ZM38.25 30.75H37.125V27.75C37.125 27.4516 37.0065 27.1655 36.7955 26.9545C36.5845 26.7435 36.2984 26.625 36 26.625C35.7016 26.625 35.4155 26.7435 35.2045 26.9545C34.9935 27.1655 34.875 27.4516 34.875 27.75V30.75H33.75C33.4516 30.75 33.1655 30.8685 32.9545 31.0795C32.7435 31.2905 32.625 31.5766 32.625 31.875C32.625 32.1734 32.7435 32.4595 32.9545 32.6705C33.1655 32.8815 33.4516 33 33.75 33H38.25C38.5484 33 38.8345 32.8815 39.0455 32.6705C39.2565 32.4595 39.375 32.1734 39.375 31.875C39.375 31.5766 39.2565 31.2905 39.0455 31.0795C38.8345 30.8685 38.5484 30.75 38.25 30.75Z" fill="#779BF4"/>
                       <rect x="0.5" y="0.5" width="71" height="71" rx="11.5" stroke="#779BF4"/>
                     </svg>
@@ -1258,14 +1258,14 @@ const EnhancedTableToolbar = (props) => {
 
                 {windowWidth < 806 && open &&
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="0.5" y="0.5" width="47" height="47" rx="11.5" fill="#779BF4" fill-opacity="1"/>
+                      <rect x="0.5" y="0.5" width="47" height="47" rx="11.5" fill="#779BF4" fillOpacity="1"/>
                       <path d="M25.125 23.625V32.25C25.125 32.5484 25.0065 32.8345 24.7955 33.0455C24.5845 33.2565 24.2984 33.375 24 33.375C23.7016 33.375 23.4155 33.2565 23.2045 33.0455C22.9935 32.8345 22.875 32.5484 22.875 32.25V23.625C22.875 23.3266 22.9935 23.0405 23.2045 22.8295C23.4155 22.6185 23.7016 22.5 24 22.5C24.2984 22.5 24.5845 22.6185 24.7955 22.8295C25.0065 23.0405 25.125 23.3266 25.125 23.625V23.625ZM30.75 30C30.4516 30 30.1655 30.1185 29.9545 30.3295C29.7435 30.5405 29.625 30.8266 29.625 31.125V32.25C29.625 32.5484 29.7435 32.8345 29.9545 33.0455C30.1655 33.2565 30.4516 33.375 30.75 33.375C31.0484 33.375 31.3345 33.2565 31.5455 33.0455C31.7565 32.8345 31.875 32.5484 31.875 32.25V31.125C31.875 30.8266 31.7565 30.5405 31.5455 30.3295C31.3345 30.1185 31.0484 30 30.75 30V30ZM33 26.25H31.875V15.75C31.875 15.4516 31.7565 15.1655 31.5455 14.9545C31.3345 14.7435 31.0484 14.625 30.75 14.625C30.4516 14.625 30.1655 14.7435 29.9545 14.9545C29.7435 15.1655 29.625 15.4516 29.625 15.75V26.25H28.5C28.2016 26.25 27.9155 26.3685 27.7045 26.5795C27.4935 26.7905 27.375 27.0766 27.375 27.375C27.375 27.6734 27.4935 27.9595 27.7045 28.1705C27.9155 28.3815 28.2016 28.5 28.5 28.5H33C33.2984 28.5 33.5845 28.3815 33.7955 28.1705C34.0065 27.9595 34.125 27.6734 34.125 27.375C34.125 27.0766 34.0065 26.7905 33.7955 26.5795C33.5845 26.3685 33.2984 26.25 33 26.25V26.25ZM17.25 27C16.9516 27 16.6655 27.1185 16.4545 27.3295C16.2435 27.5405 16.125 27.8266 16.125 28.125V32.25C16.125 32.5484 16.2435 32.8345 16.4545 33.0455C16.6655 33.2565 16.9516 33.375 17.25 33.375C17.5484 33.375 17.8345 33.2565 18.0455 33.0455C18.2565 32.8345 18.375 32.5484 18.375 32.25V28.125C18.375 27.8266 18.2565 27.5405 18.0455 27.3295C17.8345 27.1185 17.5484 27 17.25 27V27ZM19.5 23.25H18.375V15.75C18.375 15.4516 18.2565 15.1655 18.0455 14.9545C17.8345 14.7435 17.5484 14.625 17.25 14.625C16.9516 14.625 16.6655 14.7435 16.4545 14.9545C16.2435 15.1655 16.125 15.4516 16.125 15.75V23.25H15C14.7016 23.25 14.4155 23.3685 14.2045 23.5795C13.9935 23.7905 13.875 24.0766 13.875 24.375C13.875 24.6734 13.9935 24.9595 14.2045 25.1705C14.4155 25.3815 14.7016 25.5 15 25.5H19.5C19.7984 25.5 20.0845 25.3815 20.2955 25.1705C20.5065 24.9595 20.625 24.6734 20.625 24.375C20.625 24.0766 20.5065 23.7905 20.2955 23.5795C20.0845 23.3685 19.7984 23.25 19.5 23.25ZM26.25 18.75H25.125V15.75C25.125 15.4516 25.0065 15.1655 24.7955 14.9545C24.5845 14.7435 24.2984 14.625 24 14.625C23.7016 14.625 23.4155 14.7435 23.2045 14.9545C22.9935 15.1655 22.875 15.4516 22.875 15.75V18.75H21.75C21.4516 18.75 21.1655 18.8685 20.9545 19.0795C20.7435 19.2905 20.625 19.5766 20.625 19.875C20.625 20.1734 20.7435 20.4595 20.9545 20.6705C21.1655 20.8815 21.4516 21 21.75 21H26.25C26.5484 21 26.8345 20.8815 27.0455 20.6705C27.2565 20.4595 27.375 20.1734 27.375 19.875C27.375 19.5766 27.2565 19.2905 27.0455 19.0795C26.8345 18.8685 26.5484 18.75 26.25 18.75Z" fill="#E4E9F4"/>
                       <rect x="0.5" y="0.5" width="47" height="47" rx="11.5" stroke="#779BF4"/>
                     </svg>
                 }
                 {windowWidth < 806 && !open &&
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="0.5" y="0.5" width="47" height="47" rx="11.5" fill="#779BF4" fill-opacity="0.15"/>
+                      <rect x="0.5" y="0.5" width="47" height="47" rx="11.5" fill="#779BF4" fillOpacity="0.15"/>
                       <path d="M25.125 23.625V32.25C25.125 32.5484 25.0065 32.8345 24.7955 33.0455C24.5845 33.2565 24.2984 33.375 24 33.375C23.7016 33.375 23.4155 33.2565 23.2045 33.0455C22.9935 32.8345 22.875 32.5484 22.875 32.25V23.625C22.875 23.3266 22.9935 23.0405 23.2045 22.8295C23.4155 22.6185 23.7016 22.5 24 22.5C24.2984 22.5 24.5845 22.6185 24.7955 22.8295C25.0065 23.0405 25.125 23.3266 25.125 23.625V23.625ZM30.75 30C30.4516 30 30.1655 30.1185 29.9545 30.3295C29.7435 30.5405 29.625 30.8266 29.625 31.125V32.25C29.625 32.5484 29.7435 32.8345 29.9545 33.0455C30.1655 33.2565 30.4516 33.375 30.75 33.375C31.0484 33.375 31.3345 33.2565 31.5455 33.0455C31.7565 32.8345 31.875 32.5484 31.875 32.25V31.125C31.875 30.8266 31.7565 30.5405 31.5455 30.3295C31.3345 30.1185 31.0484 30 30.75 30V30ZM33 26.25H31.875V15.75C31.875 15.4516 31.7565 15.1655 31.5455 14.9545C31.3345 14.7435 31.0484 14.625 30.75 14.625C30.4516 14.625 30.1655 14.7435 29.9545 14.9545C29.7435 15.1655 29.625 15.4516 29.625 15.75V26.25H28.5C28.2016 26.25 27.9155 26.3685 27.7045 26.5795C27.4935 26.7905 27.375 27.0766 27.375 27.375C27.375 27.6734 27.4935 27.9595 27.7045 28.1705C27.9155 28.3815 28.2016 28.5 28.5 28.5H33C33.2984 28.5 33.5845 28.3815 33.7955 28.1705C34.0065 27.9595 34.125 27.6734 34.125 27.375C34.125 27.0766 34.0065 26.7905 33.7955 26.5795C33.5845 26.3685 33.2984 26.25 33 26.25V26.25ZM17.25 27C16.9516 27 16.6655 27.1185 16.4545 27.3295C16.2435 27.5405 16.125 27.8266 16.125 28.125V32.25C16.125 32.5484 16.2435 32.8345 16.4545 33.0455C16.6655 33.2565 16.9516 33.375 17.25 33.375C17.5484 33.375 17.8345 33.2565 18.0455 33.0455C18.2565 32.8345 18.375 32.5484 18.375 32.25V28.125C18.375 27.8266 18.2565 27.5405 18.0455 27.3295C17.8345 27.1185 17.5484 27 17.25 27V27ZM19.5 23.25H18.375V15.75C18.375 15.4516 18.2565 15.1655 18.0455 14.9545C17.8345 14.7435 17.5484 14.625 17.25 14.625C16.9516 14.625 16.6655 14.7435 16.4545 14.9545C16.2435 15.1655 16.125 15.4516 16.125 15.75V23.25H15C14.7016 23.25 14.4155 23.3685 14.2045 23.5795C13.9935 23.7905 13.875 24.0766 13.875 24.375C13.875 24.6734 13.9935 24.9595 14.2045 25.1705C14.4155 25.3815 14.7016 25.5 15 25.5H19.5C19.7984 25.5 20.0845 25.3815 20.2955 25.1705C20.5065 24.9595 20.625 24.6734 20.625 24.375C20.625 24.0766 20.5065 23.7905 20.2955 23.5795C20.0845 23.3685 19.7984 23.25 19.5 23.25ZM26.25 18.75H25.125V15.75C25.125 15.4516 25.0065 15.1655 24.7955 14.9545C24.5845 14.7435 24.2984 14.625 24 14.625C23.7016 14.625 23.4155 14.7435 23.2045 14.9545C22.9935 15.1655 22.875 15.4516 22.875 15.75V18.75H21.75C21.4516 18.75 21.1655 18.8685 20.9545 19.0795C20.7435 19.2905 20.625 19.5766 20.625 19.875C20.625 20.1734 20.7435 20.4595 20.9545 20.6705C21.1655 20.8815 21.4516 21 21.75 21H26.25C26.5484 21 26.8345 20.8815 27.0455 20.6705C27.2565 20.4595 27.375 20.1734 27.375 19.875C27.375 19.5766 27.2565 19.2905 27.0455 19.0795C26.8345 18.8685 26.5484 18.75 26.25 18.75Z" fill="#779BF4"/>
                       <rect x="0.5" y="0.5" width="47" height="47" rx="11.5" stroke="#779BF4"/>
                     </svg>
@@ -1400,11 +1400,11 @@ const EnhancedTableToolbar = (props) => {
               {/*Search icon*/}
               <div className={classes.searchInputIcon}>
                 <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10.5 20C15.7467 20 20 15.7467 20 10.5C20 5.25329 15.7467 1 10.5 1C5.25329 1 1 5.25329 1 10.5C1 15.7467 5.25329 20 10.5 20Z" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <div style={{position: 'relative'}}>
                   <svg style={{position: 'absolute', top: 8, right: 0,}} width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3L1 1" stroke="#779BF4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 3L1 1" stroke="#779BF4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
               </div>
@@ -1788,14 +1788,14 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       {BigNumber(row?.gauge?.apr).gt(0) ? (
                                           <div>
                                             {`${
-                                                formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr).div(100).times(40),
-                                                    BigNumber(row?.gauge?.boostedApr0),
-                                                    BigNumber(row?.gauge?.boostedApr1)
+                                                formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.derivedAPR).div(100).times(40),
+                                                    BigNumber(row?.gauge?.additionalApr0),
+                                                    BigNumber(row?.gauge?.additionalApr1)
                                                 ),0)
                                             }-${
-                                                formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr),
-                                                    BigNumber(row?.gauge?.boostedApr0),
-                                                    BigNumber(row?.gauge?.boostedApr1)
+                                                formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.derivedAPR),
+                                                    BigNumber(row?.gauge?.additionalApr0),
+                                                    BigNumber(row?.gauge?.additionalApr1)
                                                 ),0)
                                             }`}
                                             <span style={{color: 'rgb(124, 131, 138)'}}> %</span>
@@ -1810,60 +1810,59 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       <React.Fragment>
                                         <div className={css.tooltip}>
                                           <div className={css.tooltip_group}>
-                                            <div className={css.tooltip_row}>
-                                              <b>
-                                                {formatCurrency(
-                                                  BigNumber.sum(
-                                                    BigNumber(
-                                                      row?.gauge?.boostedApr0
-                                                    ),
-                                                    BigNumber(row?.gauge?.boostedApr1)
-                                                  ),
-                                                  2
-                                                )}
-                                                %
-                                              </b>{" "}
-                                              <b>Boosted APR</b>
-                                            </div>
-                                            <div className={css.tooltip_row}>
-                                              <b>
-                                                {formatCurrency(
-                                                  BigNumber(row?.gauge?.boostedApr0),
-                                                  2
-                                                )}
-                                                %
-                                              </b>{" "}
-                                              {row.token0.symbol} APR
-                                            </div>
-                                            <div className={css.tooltip_row}>
-                                              <b>
-                                                {formatCurrency(
-                                                  BigNumber(row?.gauge?.boostedApr1),
-                                                  2
-                                                )}
-                                                %
-                                              </b>{" "}
-                                              {row.token1.symbol} APR
-                                            </div>  
+
+                                            {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
+                                              <div className={css.tooltip_row}>
+                                                <b style={{ color: "green" }}>
+                                                  x{BigNumber(row?.gauge?.boost).toFixed(2)}
+                                                </b>{" "}
+                                                <b style={{ color: "green" }}>Your boost</b>
+                                              </div>
+                                            }
+
+                                            {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
+                                              <div className={css.tooltip_row}>
+                                                <b>
+                                                  {BigNumber(row?.gauge?.personalAPR).toFixed(2)}%
+                                                </b>{" "}
+                                                <b>Your APR</b>
+                                              </div>
+
+                                            }
+
+                                            {(row?.gauge?.additionalApr0 && BigNumber(row?.gauge?.additionalApr0).gt(0)) &&
+                                              <div className={css.tooltip_row}>
+                                                <b>
+                                                  {formatCurrency(
+                                                    BigNumber(row?.gauge?.additionalApr0),
+                                                    2
+                                                  )}
+                                                  %
+                                                </b>{" "}
+                                                Bonus {row.token0.symbol} APR
+                                              </div>
+                                            }
+
+                                            {(row?.gauge?.additionalApr1 && BigNumber(row?.gauge?.additionalApr1).gt(0)) &&
+                                              <div className={css.tooltip_row}>
+                                                <b>
+                                                  {formatCurrency(
+                                                    BigNumber(row?.gauge?.additionalApr1),
+                                                    2
+                                                  )}
+                                                  %
+                                                </b>{" "}
+                                                Bonus {row.token1.symbol} APR
+                                              </div>
+                                            }
                                           </div>
 
                                           <div className={css.tooltip_group}>
+
                                             <div className={css.tooltip_row}>
                                               <b>
                                                 {formatCurrency(
-                                                  BigNumber(row?.gauge?.apr)
-                                                    .div(100)
-                                                    .times(40),
-                                                  2
-                                                )}
-                                                %
-                                              </b>{" "}
-                                              <b>Min staking APR</b>
-                                            </div>
-                                            <div className={css.tooltip_row}>
-                                              <b>
-                                                {formatCurrency(
-                                                  BigNumber(row?.gauge?.apr)
+                                                  BigNumber(row?.gauge?.derivedAPR)
                                                     .div(100)
                                                     .times(40),
                                                   2
@@ -1875,7 +1874,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                             <div className={css.tooltip_row}>
                                               <b>
                                                 {formatCurrency(
-                                                  BigNumber(row?.gauge?.apr),
+                                                  BigNumber(row?.gauge?.derivedAPR),
                                                   2
                                                 )}
                                                 %
@@ -1890,7 +1889,8 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       tooltip: css.tooltip_wrapper
                                     }}
                                   >
-                                    <img src="/images/icon-info.svg" width="16px" style={{ marginLeft: 12 }} />
+                                    <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
+                                         width="16px" style={{ marginLeft: 12 }} />
                                   </Tooltip>
                                 </div>
                               }
@@ -2754,14 +2754,14 @@ export default function EnhancedTable({pairs, isLoading}) {
                                     whiteSpace: 'nowrap',
                                   }}>
                                   {BigNumber(row?.gauge?.apr).gt(0) ? `${
-                                      formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr).div(100).times(40),
-                                          BigNumber(row?.gauge?.boostedApr0),
-                                          BigNumber(row?.gauge?.boostedApr1)
+                                      formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.derivedAPR).div(100).times(40),
+                                          BigNumber(row?.gauge?.additionalApr0),
+                                          BigNumber(row?.gauge?.additionalApr1)
                                       ),0)
                                   }-${
-                                      formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.apr),
-                                          BigNumber(row?.gauge?.boostedApr0),
-                                          BigNumber(row?.gauge?.boostedApr1)
+                                      formatCurrency(BigNumber.sum(BigNumber(row?.gauge?.derivedAPR),
+                                          BigNumber(row?.gauge?.additionalApr0),
+                                          BigNumber(row?.gauge?.additionalApr1)
                                       ),0)
                                   }%` : '-'}
                                 </Typography>
@@ -2806,60 +2806,68 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   <React.Fragment>
                                     <div className={css.tooltip}>
                                       <div className={css.tooltip_group}>
-                                        <div className={css.tooltip_row}>
-                                          <b>
-                                            {formatCurrency(
-                                              BigNumber.sum(
-                                                BigNumber(
-                                                  row?.gauge?.boostedApr0
-                                                ),
-                                                BigNumber(row?.gauge?.boostedApr1)
-                                              ),
-                                              2
-                                            )}
-                                            %
-                                          </b>{" "}
-                                          <b>Boosted APR</b>
-                                        </div>
-                                        <div className={css.tooltip_row}>
-                                          <b>
-                                            {formatCurrency(
-                                              BigNumber(row?.gauge?.boostedApr0),
-                                              2
-                                            )}
-                                            %
-                                          </b>{" "}
-                                          {row.token0.symbol} APR
-                                        </div>
-                                        <div className={css.tooltip_row}>
-                                          <b>
-                                            {formatCurrency(
-                                              BigNumber(row?.gauge?.boostedApr1),
-                                              2
-                                            )}
-                                            %
-                                          </b>{" "}
-                                          {row.token1.symbol} APR
-                                        </div>  
+
+                                        {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
+                                          <div className={css.tooltip_row}>
+                                            <b style={{ color: "green" }}>
+                                              x{BigNumber(row?.gauge?.boost).toFixed(2)}
+                                            </b>{" "}
+                                            <b style={{ color: "green" }}>Your boost</b>
+                                          </div>
+                                        }
+
+                                        {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
+                                          <div className={css.tooltip_row}>
+                                            <b>
+                                              {BigNumber(row?.gauge?.personalAPR).toFixed(2)}%
+                                            </b>{" "}
+                                            <b>Your APR</b>
+                                          </div>
+                                        }
+
+                                        {(row?.gauge?.additionalApr0 && BigNumber(row?.gauge?.additionalApr0).gt(0)) &&
+                                          <div className={css.tooltip_row}>
+                                            <b>
+                                              {formatCurrency(
+                                                BigNumber(row?.gauge?.additionalApr0),
+                                                2
+                                              )}
+                                              %
+                                            </b>{" "}
+                                            Bonus {row.token0.symbol} APR
+                                          </div>
+                                        }
+                                        {(row?.gauge?.additionalApr1 && BigNumber(row?.gauge?.additionalApr1).gt(0)) &&
+                                          <div className={css.tooltip_row}>
+                                            <b>
+                                              {formatCurrency(
+                                                BigNumber(row?.gauge?.additionalApr1),
+                                                2
+                                              )}
+                                              %
+                                            </b>{" "}
+                                            Bonus {row.token1.symbol} APR
+                                          </div>
+                                        }
                                       </div>
 
                                       <div className={css.tooltip_group}>
                                         <div className={css.tooltip_row}>
                                           <b>
                                             {formatCurrency(
-                                              BigNumber(row?.gauge?.apr)
+                                              BigNumber(row?.gauge?.derivedAPR)
                                                 .div(100)
                                                 .times(40),
                                               2
                                             )}
                                             %
                                           </b>{" "}
-                                          <b>Min staking APR</b>
+                                          <b>Staking APR</b>
                                         </div>
                                         <div className={css.tooltip_row}>
                                           <b>
                                             {formatCurrency(
-                                              BigNumber(row?.gauge?.apr)
+                                              BigNumber(row?.gauge?.derivedAPR)
                                                 .div(100)
                                                 .times(40),
                                               2
@@ -2871,7 +2879,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                         <div className={css.tooltip_row}>
                                           <b>
                                             {formatCurrency(
-                                              BigNumber(row?.gauge?.apr),
+                                              BigNumber(row?.gauge?.derivedAPR),
                                               2
                                             )}
                                             %
@@ -2886,7 +2894,8 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   tooltip: css.tooltip_wrapper
                                 }}
                               >
-                                <img src="/images/icon-info.svg" width="16px" style={{ marginLeft: 5 }} />
+                                <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
+                                     width="16px" style={{ marginLeft: 5 }} />
                               </Tooltip>
                             </div>
                           </div>
