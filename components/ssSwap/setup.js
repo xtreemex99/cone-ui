@@ -114,14 +114,14 @@ function Setup() {
           setToAssetOptions(baseAsset);
           setFromAssetOptions(baseAsset);
 
-          if (baseAsset.length > 0 && toAssetValue == null) {
+          if (baseAsset.length > 0 && (toAssetValue == null || toAssetValue.chainId === "not_inited")) {
             const dystIndex = baseAsset.findIndex((token) => {
-              return token.address?.toLowerCase() === CONE_ADDRESS;
+              return token.address?.toLowerCase() === CONE_ADDRESS.toLowerCase();
             });
             setToAssetValue(baseAsset[dystIndex]);
           }
 
-          if (baseAsset.length > 0 && fromAssetValue == null) {
+          if (baseAsset.length > 0 && (fromAssetValue == null || fromAssetValue.chainId === "not_inited")) {
             const wmaticIndex = baseAsset.findIndex((token) => {
               return token.address === "BNB";
             });

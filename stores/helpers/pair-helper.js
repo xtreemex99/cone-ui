@@ -72,6 +72,7 @@ async function loadPairFromSubgraph(pairAddress) {
 
 // it is very rare case when a pair just created, use on-chain info for the most fresh data
 async function loadFullPairInfo(pairAddress, web3, account, baseAssets) {
+  console.log("LOAD FULL PAIR INFO")
   const pairContract = getPairContract(web3, pairAddress);
   const gaugesContract = getVoterContract(web3);
 
@@ -300,7 +301,7 @@ export const getAndUpdatePair = async (
   account,
   pairs
 ) => {
-  // console.log(">>> GET AND UPDATE PAIR");
+  console.log(">>> GET AND UPDATE PAIR");
   if (!account || !web3) {
     return null;
   }
@@ -352,14 +353,14 @@ async function getPairsSubgraph() {
       pair.gaugebribes.address = pair.gaugebribes?.id;
     }
     pair.token0.address = pair.token0.id;
-    pair.token0.chainId = null;
+    pair.token0.chainId = 'not_inited';
     pair.token0.balance = 0;
-    pair.token0.logoURI = '';
+    pair.token0.logoURI = 'not_inited';
 
     pair.token1.address = pair.token1.id;
-    pair.token1.chainId = null;
+    pair.token1.chainId = 'not_inited';
     pair.token1.balance = 0;
-    pair.token1.logoURI = '';
+    pair.token1.logoURI = 'not_inited';
 
     pair.claimable0 = 0;
     pair.claimable1 = 0;
@@ -576,7 +577,7 @@ export const enrichPairInfo = async (
 ) => {
   const userAddress = account;
   if (!userAddress || !web3) {
-    return pairs;
+    return;
   }
   try {
     const userInfo = await loadUserInfoFromSubgraph(userAddress);
@@ -603,11 +604,8 @@ export const enrichPairInfo = async (
     const ethPrice = getEthPrice();
     const totalWeight = await getTotalWight(web3);
     mapPairInfo(pairs, ethPrice, totalWeight);
-
-    return pairs;
   } catch (ex) {
     console.log("Error get pair infos", ex);
-    return null;
   }
 };
 
