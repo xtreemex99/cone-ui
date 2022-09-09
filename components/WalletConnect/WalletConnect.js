@@ -86,7 +86,7 @@ async function connect() {
     },
   });
 
-    updateGeneralStore();
+  updateGeneralStore();
   stores.emitter.emit(CONNECTION_CONNECTED);
   stores.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
 

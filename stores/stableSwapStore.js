@@ -29,30 +29,30 @@ import {
 } from "./helpers/reward-helper";
 import {searchWhitelist, whitelistToken} from "./helpers/whitelist-helpers";
 
-const EMPTY_STORE = {
-  baseAssets: [],
-  govToken: null,
-  veToken: null,
-  pairs: [],
-  vestNFTs: null,
-  migratePair: [],
-  rewards: {
-    bribes: [],
-    fees: [],
-    rewards: [],
-  },
-  apr: [],
-};
-
 class Store {
 
   configurationLoading = false;
+  userAddress = null;
+  id = null;
 
   constructor(dispatcher, emitter) {
+    this.id = Date.now()
     this.dispatcher = dispatcher;
     this.emitter = emitter;
 
-    this.store = EMPTY_STORE;
+    this.store = {
+      baseAssets: [],
+      govToken: null,
+      veToken: null,
+      pairs: [],
+      vestNFTs: null,
+      rewards: {
+        bribes: [],
+        fees: [],
+        rewards: [],
+      },
+      apr: [],
+    };
 
     dispatcher.register(
       function (payload) {
@@ -171,12 +171,33 @@ class Store {
 
   // DISPATCHER FUNCTIONS
   configure = async () => {
-    // console.log('configure')
-    if(this.configurationLoading || this.getAccount() === null || stores.accountStore.getStore("chainInvalid")) {
+    if (this.configurationLoading) {
       return;
     }
+
+    this.userAddress = stores.accountStore.getStore("account")
+
+    if (this.getUserAddress() === null || stores.accountStore.getStore("chainInvalid")) {
+      console.log('delay to load config')
+      setTimeout(async () => await this.configure(), 1000);
+      return;
+    }
+    console.log('configure ', this.id)
     try {
       this.configurationLoading = true;
+      this.setStore({
+        baseAssets: [],
+        govToken: null,
+        veToken: null,
+        pairs: [],
+        vestNFTs: null,
+        rewards: {
+          bribes: [],
+          fees: [],
+          rewards: [],
+        },
+      });
+
 
       this.setStore({
         govToken: {
@@ -193,8 +214,8 @@ class Store {
       this.setStore({baseAssets: await getBaseAssets()});
       await this.getVestNFTs();
       await this.refreshPairs();
-      await this._refreshGovTokenInfo(await this.getWeb3(), this.getAccount());
-      await this._getBaseAssetInfo(await this.getWeb3(), this.getAccount());
+      await this._refreshGovTokenInfo(await this.getWeb3(), this.getUserAddress());
+      await this._getBaseAssetInfo(await this.getWeb3(), this.getUserAddress());
 
       this.emitter.emit(ACTIONS.UPDATED);
       this.emitter.emit(ACTIONS.CONFIGURED_SS);
@@ -212,13 +233,13 @@ class Store {
     return this.emitter.emit(ACTIONS.STORE_UPDATED);
   };
 
-  getAccount() {
-    const account = stores.accountStore.getStore("account");
-    if (!account) {
-      console.warn("account not found");
+  getUserAddress() {
+    const adr = this.userAddress;
+    if (!adr) {
+      console.warn("user address not found");
       return null;
     }
-    return account;
+    return adr;
   }
 
   async getWeb3() {
@@ -239,9 +260,9 @@ class Store {
     if (!pairs || pairs.length === 0) {
       pairs = await getPairs();
     }
-    pairs = await enrichPairInfo(
+    await enrichPairInfo(
       await this.getWeb3(),
-      this.getAccount(),
+      this.getUserAddress(),
       pairs,
       await stores.accountStore.getMulticall(),
       this.getStore("baseAssets"),
@@ -253,16 +274,21 @@ class Store {
 
   getPairByAddress = async (pairAddress) => {
     const pairs = this.getStore("pairs");
-    const pair = await getAndUpdatePair(pairAddress, await this.getWeb3(), this.getAccount(), pairs);
+    const pair = await getAndUpdatePair(pairAddress, await this.getWeb3(), this.getUserAddress(), pairs);
     this.setStore({pairs: pairs ?? []});
     return pair;
   };
 
   getPair = async (addressA, addressB, stab) => {
-    const pairs = this.getStore("pairs");
-    const pair = await loadPair(addressA, addressB, stab, await this.getWeb3(), this.getAccount(), pairs, this.getStore("baseAssets"))
-    this.setStore({pairs: pairs ?? []});
-    return pair;
+    return await loadPair(
+      addressA,
+      addressB,
+      stab,
+      await this.getWeb3(),
+      this.getUserAddress(),
+      this.getStore("pairs"),
+      this.getStore("baseAssets")
+    );
   };
 
   //////////////////////////////////////////////////////////////
@@ -286,7 +312,7 @@ class Store {
     if (nft !== null) {
       return nft;
     }
-    const freshNft = await loadNfts(this.getAccount(), await this.getWeb3(), id);
+    const freshNft = await loadNfts(this.getUserAddress(), await this.getWeb3(), id);
     if (freshNft.length > 0) {
       existNfts.push(...freshNft)
     }
@@ -294,7 +320,7 @@ class Store {
   };
 
   getVestNFTs = async () => {
-    const nfts = await loadNfts(this.getAccount(), await this.getWeb3());
+    const nfts = await loadNfts(this.getUserAddress(), await this.getWeb3());
     this.setStore({vestNFTs: nfts});
     this.emitter.emit(ACTIONS.VEST_NFTS_RETURNED, nfts);
     return nfts;
@@ -303,7 +329,7 @@ class Store {
   getVestVotes = async (payload) => {
     await getVestVotes(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.getStore("pairs"),
@@ -328,7 +354,7 @@ class Store {
     }
     try {
       const baseAssets = this.getStore("baseAssets");
-      const newBaseAsset = await getOrCreateBaseAsset(baseAssets, address, await this.getWeb3(), this.getAccount(), getBalance);
+      const newBaseAsset = await getOrCreateBaseAsset(baseAssets, address, await this.getWeb3(), this.getUserAddress(), getBalance);
 
       //only save when a user adds it. don't for when we look up a pair and find his asset.
       if (save) {
@@ -393,7 +419,7 @@ class Store {
   getRewardBalances = async (payload) => {
     const rewards = await getRewardBalances(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.getStore("pairs"),
@@ -426,7 +452,7 @@ class Store {
       amount1,
       isStable,
       slippage,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -453,7 +479,7 @@ class Store {
       amount1,
       pair.stable,
       slippage,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -474,7 +500,7 @@ class Store {
   removeLiquidity = async (payload) => {
     await removeLiquidity(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -490,7 +516,7 @@ class Store {
   createGauge = async (payload) => {
     await createGauge(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -502,7 +528,7 @@ class Store {
   stakeLiquidity = async (payload) => {
     await stakeLiquidity(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -515,7 +541,7 @@ class Store {
   unstakeLiquidity = async (payload) => {
     await unstakeLiquidity(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -541,7 +567,7 @@ class Store {
   swap = async (payload) => {
     await swap(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -556,7 +582,7 @@ class Store {
   wrap = async (payload) => {
     await wrap(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -571,7 +597,7 @@ class Store {
   unwrap = async (payload) => {
     await unwrap(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -590,7 +616,7 @@ class Store {
   createVest = async (payload) => {
     await createVest(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -606,7 +632,7 @@ class Store {
   increaseVestAmount = async (payload) => {
     await increaseVestAmount(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -622,7 +648,7 @@ class Store {
   increaseVestDuration = async (payload) => {
     await increaseVestDuration(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -636,7 +662,7 @@ class Store {
   withdrawVest = async (payload) => {
     await withdrawVest(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -650,7 +676,7 @@ class Store {
   merge = async (payload) => {
     await merge(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -669,7 +695,7 @@ class Store {
   vote = async (payload) => {
     await vote(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -680,7 +706,7 @@ class Store {
   resetVote = async (payload) => {
     await resetVote(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -695,7 +721,7 @@ class Store {
   createBribe = async (payload) => {
     await createBribe(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -711,7 +737,7 @@ class Store {
   claimBribes = async (payload) => {
     await claimBribes(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -723,7 +749,7 @@ class Store {
   claimAllRewards = async (payload) => {
     await claimAllRewards(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -735,7 +761,7 @@ class Store {
   claimRewards = async (payload) => {
     await claimRewards(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -747,7 +773,7 @@ class Store {
   claimVeDist = async (payload) => {
     await claimVeDist(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -759,7 +785,7 @@ class Store {
   claimPairFees = async (payload) => {
     await claimPairFees(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,
@@ -784,7 +810,7 @@ class Store {
   whitelistToken = async (payload) => {
     await whitelistToken(
       payload,
-      this.getAccount(),
+      this.getUserAddress(),
       await this.getWeb3(),
       this.emitter,
       this.dispatcher,

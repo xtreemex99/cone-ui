@@ -6,6 +6,9 @@ import stores from '../stores'
 import Web3 from 'web3';
 
 class Store {
+
+  subscribed = false;
+
   constructor(dispatcher, emitter) {
     this.dispatcher = dispatcher;
     this.emitter = emitter;
@@ -61,13 +64,27 @@ class Store {
 
   subscribeProvider = () => {
     const that = this;
+    if(that.subscribed) {
+      return
+    } else {
+      that.subscribed = true;
+    }
+
+    // remove all previous listeners, in dev mode can be subscribed multiple time
+    window.ethereum.removeAllListeners('accountsChanged');
+    window.ethereum.removeAllListeners('chainChanged');
 
     window.ethereum.on('accountsChanged', async function (accounts) {
+      let existAccount = that.getStore('account');
       const account = accounts[0]
-      that.setStore({account: account.address,});
-      that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
-      that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
-      setTimeout(() => that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,}), 1000)
+
+      if (existAccount?.toLowerCase() !== account?.toLowerCase()) {
+        that.setStore({account: account,});
+        that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,})
+        that.emitter.emit(ACTIONS.ACCOUNT_CHANGED);
+        that.emitter.emit(ACTIONS.ACCOUNT_CONFIGURED);
+        // setTimeout(() => that.dispatcher.dispatch({type: ACTIONS.CONFIGURE_SS,}), 1000)
+      }
     });
 
     window.ethereum.on('chainChanged', async function (chainId) {

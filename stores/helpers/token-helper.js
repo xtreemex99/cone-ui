@@ -108,26 +108,29 @@ export const getBaseAssets = async () => {
     let baseAssets = await getTokensFromSubgraph();
     const defaultTokenList = await getTokenList();
 
-    for (let i = 0; i < defaultTokenList.data.tokens.length; i++) {
-      for (let j = 0; j < baseAssets.length; j++) {
-        baseAssets[j].address = baseAssets[j].id
-        baseAssets[j].balance = 0
-        baseAssets[j].chainId = 0
 
-        if (defaultTokenList.data.tokens[i].address?.toLowerCase() === baseAssets[j].address.toLowerCase()) {
-          baseAssets[j].logoURI = defaultTokenList.data.tokens[i].logoURI;
-        }
+    for (let i = 0; i < baseAssets.length; i++) {
+      const baseAsset = baseAssets[i];
 
-        if (baseAssets[j].address.toLowerCase() === CONE_ADDRESS) {
-          baseAssets[j].logoURI = 'https://icons.llama.fi/cone.png'
-        }
+      const tokenInfo = defaultTokenList.data.tokens.filter(t => t?.address?.toLowerCase() === baseAsset?.id?.toLowerCase())[0];
+      baseAsset.address = baseAsset.id
+      baseAsset.balance = 0
+      baseAsset.chainId = 0
 
-        if (RENAME_ASSETS[baseAssets[j].name]) {
-          baseAssets[j].symbol = RENAME_ASSETS[baseAssets[j].name];
-          baseAssets[j].name = RENAME_ASSETS[baseAssets[j].name];
-        }
+      if (!!tokenInfo) {
+        baseAsset.logoURI = tokenInfo.logoURI;
+      }
+
+      if (baseAsset.address.toLowerCase() === CONE_ADDRESS.toLowerCase()) {
+        baseAsset.logoURI = 'https://icons.llama.fi/cone.png'
+      }
+
+      if (RENAME_ASSETS[baseAsset.name]) {
+        baseAsset.symbol = RENAME_ASSETS[baseAsset.name];
+        baseAsset.name = RENAME_ASSETS[baseAsset.name];
       }
     }
+
     // todo a bit mess with cases, need to keep only 1 constant for each value
     const nativeFTM = {
       id: CONTRACTS.FTM_ADDRESS,
@@ -141,7 +144,9 @@ export const getBaseAssets = async () => {
 
     let localBaseAssets = getLocalAssets();
 
-    baseAssets = baseAssets.filter((token) => BLACK_LIST_TOKENS.indexOf(token.id?.toLowerCase()) === -1);
+    baseAssets = baseAssets
+      .filter((token) => BLACK_LIST_TOKENS.indexOf(token.id?.toLowerCase()) === -1);
+
     let dupAssets = [];
     baseAssets.forEach((token, id) => {
       BASE_ASSETS_WHITELIST.forEach((wl) => {
@@ -151,11 +156,15 @@ export const getBaseAssets = async () => {
         }
       });
     });
-    for (var i = dupAssets.length - 1; i >= 0; i--)
+
+    for (let i = dupAssets.length - 1; i >= 0; i--){
       baseAssets.splice(dupAssets[i], 1);
-    return removeDuplicate([...localBaseAssets, ...baseAssets]);
+    }
+
+    const result = removeDuplicate([...localBaseAssets, ...baseAssets]);
+    return result.map(asset => Object.assign({}, asset));
   } catch (ex) {
-    console.log(ex);
+    console.log("Error load base assets", ex);
     return [];
   }
 };
