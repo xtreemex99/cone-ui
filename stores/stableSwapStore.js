@@ -541,7 +541,7 @@ class Store {
       token1,
       amount0,
       amount1,
-      pair.stable,
+      pair.isStable,
       slippage,
       this.getUserAddress(),
       await this.getWeb3(),
