@@ -203,7 +203,7 @@ export const getRewardBalances = async (
   // console.log('getRewardBalances')
   const userAddress = account;
   const {tokenID} = payload.content;
-  if (!userAddress || !tokenID || !pairs || !veToken || !govToken || !vestNFTs || !baseAssets) {
+  if (!userAddress || tokenID == null || !pairs || !veToken || !govToken || !vestNFTs || !baseAssets) {
     return null;
   }
   try {
