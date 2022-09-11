@@ -163,8 +163,7 @@ async function collectGaugeRewards(
   userAddress,
   baseAssets
 ) {
-  const pairsWithPositions = pairs?.filter(p => !!p.userPosition).map(p => Object.assign({}, p)) ?? [];
-
+  const pairsWithPositions = pairs?.filter(p => !!p.userPosition && !!p.gauge).map(p => Object.assign({}, p)) ?? [];
   const results = await multicallRequest(multicall, pairsWithPositions, (calls, pair) => {
     const gaugeContract = new web3.eth.Contract(CONTRACTS.GAUGE_ABI, pair.gauge.id);
     for (const rt of pair.gauge.rewardTokens) {
