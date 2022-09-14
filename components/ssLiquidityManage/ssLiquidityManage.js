@@ -8,11 +8,10 @@ import {
   InputAdornment,
   CircularProgress,
   Tooltip,
-  IconButton,
   MenuItem,
   InputBase,
   Select,
-  ClickAwayListener, Grid,
+  Grid,
 } from "@mui/material";
 import BigNumber from "bignumber.js";
 import { formatCurrency } from "../../utils";
@@ -20,17 +19,14 @@ import classes from "./ssLiquidityManage.module.css";
 import stores from "../../stores";
 import { ACTIONS, CONTRACTS } from "../../stores/constants";
 import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
-import {
-  ArrowBackIosNew,
-} from "@mui/icons-material";
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
-import { formatSymbol, formatInputAmount } from "../../utils";
+import { formatInputAmount } from "../../utils";
 import AssetSelect from "../../ui/AssetSelect";
-import Borders from "../../ui/Borders";
 import Loader from "../../ui/Loader";
 import SwitchCustom from "../../ui/Switch";
 import Hint from "../hint/hint";
 import BackButton from "../../ui/BackButton";
+import BoostCalculator from './ssBoostCalculator';
 
 export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   const router = useRouter();
@@ -1294,7 +1290,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         fontSize: 16,
                         fontWeight: 400,
                         lineHeight: '24px',
-                        
+
                         border: '1px solid #779BF4',
                         borderRadius: 12,
 
@@ -1345,7 +1341,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         fontSize: 16,
                         fontWeight: 400,
                         lineHeight: '24px',
-                        
+
                         border: '1px solid #779BF4',
                         borderRadius: 12,
 
@@ -2170,6 +2166,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                           <div className={classes.nftItems}>{renderTokenSelect()}</div>
                         </div>
                     }
+
+                    {!createLP && <BoostCalculator />}
 
                     <div className={classes.myLiqCont}>
                       <div className={classes.myLiq}>
