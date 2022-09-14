@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import classes from './ssBoostCalculator.module.css';
-import { useRouter } from 'next/router';
+import {useRouter} from 'next/router';
 import ThreePointSlider from '../threePointSlider/threePointSlider';
+import BigNumber from "bignumber.js";
+import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
 
-export default function ssBoostCalculator() {
+export default function ssBoostCalculator({pair, nft, ve}) {
   const router = useRouter();
   const boostedType = 'boosted';
 
@@ -19,15 +21,54 @@ export default function ssBoostCalculator() {
 
 
   useEffect(() => {
-    setCurrentAPRPercentage(12); // Set default value of APR% (show in Calculator and Default place of thumb of slider)
-    setCurrentAPRAmount(10); // APR amount per day (show in Calculator)
-    setBoostedAPRPercentage(12); // Default value for boosted APR%.
-    setBoostedAPRAmount(45); // Boosted APR amount per day (show in Calculator)
-    setUsedVeConePercentage(12); // Value of user's used veCone % (Slider will start from this position)
 
-    setAprLimits({ min: 2, max: 80 }); // Limits for slider, min & max APR%
-    setVeConeLimits({ min: 1250, max: 50000 }); // Limits for slider, veCone min & max. It should be linear dependency with APR%
-  }, []);
+    if (pair && ve) {
+      // min/max APR is static values, need to calculate proportion between APR to Power for UI
+      const maxApr = BigNumber(pair.gauge.derivedAPR).toFixed(2);
+      const minApr = BigNumber(pair.gauge.derivedAPR).times(0.4).toFixed(2);
+
+      // gauge balance - exist or future balance, need to set from input field
+      // const userGaugeBalance = pair.gauge.balance;
+      const userGaugeBalance = 1000;
+
+      // lock value it is veCONE power, if no NFT equals zero
+      const lockValue = BigNumber(nft?.lockValue ?? 0)
+      const veRatio = lockValue.div(ve.totalPower).toString()
+
+      // aprWithout boost will be the same as minAPR
+      // personal APR is dynamic
+      const {personalAPR, aprWithoutBoost} = calculateBoost(pair, veRatio, userGaugeBalance);
+
+      // calc $ per day doesn't depend on anything and simple math on APR and user balance
+      const userGaugeBalanceEth = BigNumber(userGaugeBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
+      const userGaugeBalanceUsd = userGaugeBalanceEth.times(pair.ethPrice);
+      const earnPerDay = userGaugeBalanceUsd.times(personalAPR).div(365).toFixed(2);
+
+      // max value for the UI, user can have enough power - then show max possible APR
+      const maxPower = calculatePowerForMaxBoost(pair, userGaugeBalance, ve.totalPower);
+
+      // console.log('maxApr', maxApr);
+      // console.log('minApr', minApr);
+      // console.log('userGaugeBalance', userGaugeBalance);
+      // console.log('lockValue', lockValue.toString());
+      // console.log('veRatio', veRatio);
+      // console.log('personalAPR', personalAPR.toString());
+      // console.log('aprWithoutBoost', aprWithoutBoost.toString());
+      // console.log('userGaugeBalanceUsd', userGaugeBalanceUsd.toString());
+      // console.log('earnPerDay', earnPerDay);
+      // console.log('maxPower', maxPower);
+
+
+      setCurrentAPRPercentage(parseFloat(personalAPR.toFixed(2))); // Set default value of APR% (show in Calculator and Default place of thumb of slider)
+      setCurrentAPRAmount(parseFloat(earnPerDay)); // APR amount per day (show in Calculator)
+      setBoostedAPRPercentage(parseFloat(personalAPR.toFixed(2))); // Default value for boosted APR%.
+      setBoostedAPRAmount(45); // Boosted APR amount per day (show in Calculator)
+      setUsedVeConePercentage(12); // Value of user's used veCone % (Slider will start from this position)
+
+      setAprLimits({min: parseFloat(minApr), max: parseFloat(maxApr)}); // Limits for slider, min & max APR%
+      setVeConeLimits({min: 0, max: parseFloat(maxPower)}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
+    }
+  }, [pair]);
 
   useEffect(() => {
     setIsShowNote(boostedAPRPercentage === usedVeConePercentage || boostedAPRPercentage === aprLimits.min);

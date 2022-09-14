@@ -2167,7 +2167,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         </div>
                     }
 
-                    {!createLP && <BoostCalculator />}
+                    {!createLP && <BoostCalculator pair={pair} nft={token} ve={veToken}/>}
 
                     <div className={classes.myLiqCont}>
                       <div className={classes.myLiq}>
