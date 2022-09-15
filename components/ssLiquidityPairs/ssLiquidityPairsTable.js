@@ -204,7 +204,7 @@ const headCells = [
                 fontSize: 16,
                 fontWeight: 400,
                 lineHeight: '24px',
-                
+
                 border: '1px solid #779BF4',
                 borderRadius: 12,
 
@@ -697,7 +697,7 @@ const useStyles = makeStyles({
     width: 747,
     height: 72,
     paddingRight: 24,
-  
+
     '&:hover': {
       backgroundColor: '#1F2B49 !important',
     },
@@ -2698,7 +2698,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       fontSize: 16,
                                       fontWeight: 400,
                                       lineHeight: '24px',
-                                      
+
                                       border: '1px solid #779BF4',
                                       borderRadius: 12,
 

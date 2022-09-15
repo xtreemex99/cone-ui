@@ -29,7 +29,7 @@ export default function ThreePointSlider({
   };
 
   const formatValue = useCallback((value) => {
-    return numeral(BigNumber(value).toLocaleString()).format('(0a)')
+    return numeral(BigNumber(value).toLocaleString()).format(value > 1000 ? '(0a)' : '0.00')
   }, []);
 
   const onSliderChange = (event, value) => {

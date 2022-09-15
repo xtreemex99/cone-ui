@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import classes from './ssBoostCalculator.module.css';
 import {useRouter} from 'next/router';
 import ThreePointSlider from '../threePointSlider/threePointSlider';
@@ -15,21 +15,18 @@ export default function ssBoostCalculator({pair, nft, ve}) {
   const [ boostedAPRPercentage, setBoostedAPRPercentage ] = useState(0);
   const [ currentAPRAmount, setCurrentAPRAmount ] = useState(0);
   const [ boostedAPRAmount, setBoostedAPRAmount ] = useState(0);
-  const [ usedVeConePercentage, setUsedVeConePercentage ] = useState(0);
+  const [ usedAPRPercentage, setUsedAPRPercentage ] = useState(0);
   const [ aprLimits, setAprLimits ] = useState({ min: 0, max: 100 }); // Percentage only
   const [ veConeLimits, setVeConeLimits ] = useState({ min: 0, max: 1000 });
 
-
-  useEffect(() => {
-
+  const sliderConfig = useMemo(() => {
     if (pair && ve) {
       // min/max APR is static values, need to calculate proportion between APR to Power for UI
       const maxApr = BigNumber(pair.gauge.derivedAPR).toFixed(2);
       const minApr = BigNumber(pair.gauge.derivedAPR).times(0.4).toFixed(2);
 
       // gauge balance - exist or future balance, need to set from input field
-      // const userGaugeBalance = pair.gauge.balance;
-      const userGaugeBalance = 1000;
+      const userGaugeBalance = pair.gauge.balance;
 
       // lock value it is veCONE power, if no NFT equals zero
       const lockValue = BigNumber(nft?.lockValue ?? 0)
@@ -47,6 +44,7 @@ export default function ssBoostCalculator({pair, nft, ve}) {
       // max value for the UI, user can have enough power - then show max possible APR
       const maxPower = calculatePowerForMaxBoost(pair, userGaugeBalance, ve.totalPower);
 
+      // console.log('-----------------', );
       // console.log('maxApr', maxApr);
       // console.log('minApr', minApr);
       // console.log('userGaugeBalance', userGaugeBalance);
@@ -57,23 +55,41 @@ export default function ssBoostCalculator({pair, nft, ve}) {
       // console.log('userGaugeBalanceUsd', userGaugeBalanceUsd.toString());
       // console.log('earnPerDay', earnPerDay);
       // console.log('maxPower', maxPower);
+      // console.log('-----------------', );
+
+      return {
+        maxApr: parseFloat(maxApr),
+        minApr: parseFloat(minApr),
+        earnPerDay: parseFloat(earnPerDay),
+        earnPerDayBoosted: +parseFloat((boostedAPRPercentage * earnPerDay / minApr).toFixed(2)),
+        personalAPR: parseFloat(personalAPR.toFixed(2)),
+        maxPower: parseFloat(maxPower)
+      }
+    }
+  }, [pair]);
 
 
-      setCurrentAPRPercentage(parseFloat(personalAPR.toFixed(2))); // Set default value of APR% (show in Calculator and Default place of thumb of slider)
-      setCurrentAPRAmount(parseFloat(earnPerDay)); // APR amount per day (show in Calculator)
-      setBoostedAPRPercentage(parseFloat(personalAPR.toFixed(2))); // Default value for boosted APR%.
-      setBoostedAPRAmount(45); // Boosted APR amount per day (show in Calculator)
-      setUsedVeConePercentage(12); // Value of user's used veCone % (Slider will start from this position)
+  useEffect(() => {
+    if (pair && ve) {
+      setCurrentAPRPercentage(sliderConfig.personalAPR); // Set default value of APR% (show in Calculator and Default place of thumb of slider)
+      setCurrentAPRAmount(sliderConfig.earnPerDay); // APR amount per day (show in Calculator)
+      setBoostedAPRPercentage(sliderConfig.personalAPR); // Default value for boosted APR%.
+      setUsedAPRPercentage(sliderConfig.personalAPR); // Value of user's used veCone % (Slider will start from this position)
 
-      setAprLimits({min: parseFloat(minApr), max: parseFloat(maxApr)}); // Limits for slider, min & max APR%
-      setVeConeLimits({min: 0, max: parseFloat(maxPower)}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
+      setAprLimits({min: sliderConfig.minApr, max: sliderConfig.maxApr}); // Limits for slider, min & max APR%
+      setVeConeLimits({min: 0, max: sliderConfig.maxPower}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
     }
   }, [pair]);
 
   useEffect(() => {
-    setIsShowNote(boostedAPRPercentage === usedVeConePercentage || boostedAPRPercentage === aprLimits.min);
-    setIsShowCreateAction(boostedAPRPercentage > usedVeConePercentage && boostedAPRPercentage > 0);
-  }, [ boostedAPRPercentage ]);
+    setIsShowNote(boostedAPRPercentage === usedAPRPercentage || boostedAPRPercentage === aprLimits.min);
+    setIsShowCreateAction(boostedAPRPercentage > usedAPRPercentage && boostedAPRPercentage > 0);
+
+    if (pair && ve) {
+      setBoostedAPRAmount(sliderConfig.earnPerDayBoosted);
+    }
+
+  }, [ boostedAPRPercentage, pair ]);
 
   const createAction = () => {
     router.push('/vest/create').then();
@@ -119,7 +135,7 @@ export default function ssBoostCalculator({pair, nft, ve}) {
             <ThreePointSlider
                 valueLabelDisplay="on"
                 pointCurrent={currentAPRPercentage}
-                pointUsed={usedVeConePercentage}
+                pointUsed={usedAPRPercentage}
                 pointMinPct={aprLimits.min}
                 pointMaxPct={aprLimits.max}
                 pointMinValue={veConeLimits.min}
