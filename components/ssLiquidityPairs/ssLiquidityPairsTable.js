@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { makeStyles, styled, useTheme } from '@mui/styles';
+import { makeStyles, styled } from '@mui/styles';
 import {
   Button,
   Table,
@@ -17,26 +17,12 @@ import {
   IconButton,
   TextField,
   InputAdornment,
-  Popper,
-  Fade,
-  Grid,
-  Switch,
   Skeleton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails, Popover,
+  Popover,
 } from '@mui/material';
 import { useRouter } from "next/router";
 import BigNumber from 'bignumber.js';
-import {
-  FilterAltOutlined,
-  Search,
-  Add,
-  Close,
-  ArrowDropDown,
-  ExpandMore,
-  ExpandLess,
-} from '@mui/icons-material';
+import { Close } from '@mui/icons-material';
 import SortSelect from '../select-sort/select-sort';
 import { formatCurrency } from '../../utils';
 import classes from './ssLiquidityPairs.module.css';
@@ -46,7 +32,8 @@ import TablePaginationActions from '../table-pagination/table-pagination';
 import { formatSymbol } from '../../utils';
 import SwitchCustom from '../../ui/Switch';
 import { TableBodyPlaceholder } from '../../components/table';
-import QuizIcon from "@mui/icons-material/Quiz";
+import BoostCalculator from '../ssLiquidityManage/ssBoostCalculator';
+import stores from '../../stores';
 
 function descendingComparator(a, b, orderBy) {
   if (!a || !b) {
@@ -1807,7 +1794,13 @@ export default function EnhancedTable({pairs, isLoading}) {
 
                                   <Tooltip
                                     title={
-                                      <React.Fragment>
+                                      <>
+                                        {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? [1].map(() => {
+                                          const veTok = stores.stableSwapStore.getStore("veToken");
+                                          const nfts = stores.stableSwapStore.getStore("vestNFTs") ?? [];
+                                          const nft = nfts.reduce((acc, item) => item.totalPower > acc.totalPower ? item : acc, nfts[0]);
+                                          return <BoostCalculator pair={row} ve={veTok} nft={nft} isMobileView={true}/>
+                                        }) :
                                         <div className={css.tooltip}>
                                           <div className={css.tooltip_group}>
 
@@ -1882,12 +1875,13 @@ export default function EnhancedTable({pairs, isLoading}) {
                                               Max APR
                                             </div>
                                           </div>
-                                        </div>
-                                      </React.Fragment>
+                                        </div>}
+                                      </>
                                     }
                                     classes={{
-                                      tooltip: css.tooltip_wrapper
+                                      tooltip: row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0) ? css.tooltip_boost_wrapper : css.tooltip_wrapper
                                     }}
+                                    leaveDelay={500}
                                   >
                                     <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
                                          width="16px" style={{ marginLeft: 12 }} />

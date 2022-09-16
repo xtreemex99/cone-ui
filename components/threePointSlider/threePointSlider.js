@@ -38,7 +38,7 @@ export default function ThreePointSlider({
       return;
     }
     setSliderValue(value);
-    onChange({ current: value });
+    onChange({ currentPct: value, currentAmount:  formatValue(countValue(value))});
   };
 
   const labelRender = (value) => {

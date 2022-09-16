@@ -2,7 +2,6 @@
   background: #060B17;
   border-radius: 12px;
   padding: 24px;
-  margin-top: 20px;
 }
 
 .sliderWrapper {
@@ -177,80 +176,81 @@
   background: rgba(119, 155, 244, 0.4);
 }
 
-@media (max-width: 860px) {
-  .boostCalculator {
-    padding: 16px;
-  }
+.boostCalculator--mobile {
+  padding: 16px;
+}
 
-  .slider {
-    padding-top: 12px;
-    margin-bottom: -12px;
-  }
+.boostCalculator--mobile .slider {
+  padding-top: 12px;
+  margin-bottom: -12px;
+}
 
-  .sliderLabelsItem {
-    padding: 0;
-    font-size: 12px;
-    line-height: 12px;
-  }
+.boostCalculator--mobile .sliderLabelsItem {
+  padding: 0;
+  font-size: 12px;
+  line-height: 12px;
+}
 
-  .sliderLabelsItem:nth-of-type(2) {
-    display: none;
-  }
+.boostCalculator--mobile .sliderLabelsItem:nth-of-type(2) {
+  display: none;
+}
 
-  .sliderLabelsItem:first-of-type:after {
-    display: none;
-  }
+.boostCalculator--mobile .sliderLabelsItem:first-of-type:after {
+  display: none;
+}
 
-  .sliderLabels--mobile {
-    display: block;
-  }
+.boostCalculator--mobile .sliderLabels--mobile {
+  display: block;
+}
 
-  .sliderWrapper {
-    flex-direction: column;
-  }
+.boostCalculator--mobile .sliderWrapper {
+  flex-direction: column;
+}
 
-  .sliderNote {
-    padding: 12px 16px;
-    align-items: flex-start;
-  }
+.boostCalculator--mobile .sliderNote {
+  padding: 12px 16px;
+  align-items: flex-start;
+}
 
-  .profitWrapper,
-  .createAction {
-    flex-direction: column;
-  }
+.boostCalculator--mobile .profitWrapper,
+.boostCalculator--mobile .createAction {
+  flex-direction: column;
+}
 
-  .profitItem {
-    padding: 12px 16px;
-  }
+.boostCalculator--mobile .profitItem {
+  padding: 12px 16px;
+}
 
-  .profitItemDivider {
-    min-height: 32px;
-    justify-content: center;
-  }
+.boostCalculator--mobile .profitItemDivider {
+  min-height: 32px;
+  justify-content: center;
+}
 
-  .profitItemDivider:before {
-    display: none;
-  }
+.boostCalculator--mobile .profitItemDivider:before {
+  display: none;
+}
 
-  .profitItemDivider:after {
-    transform: rotate(45deg);
-    margin-top: -10px;
-  }
+.boostCalculator--mobile .profitItemDivider:after {
+  transform: rotate(45deg);
+  margin-top: -10px;
+}
 
-  .profitLabel {
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 16px;
-    text-transform: uppercase;
-  }
+.boostCalculator--mobile .profitLabel {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 16px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-  .profitValue {
-    font-size: 14px;
-    line-height: 16px;
-  }
+.boostCalculator--mobile .profitValue {
+  font-size: 14px;
+  line-height: 16px;
+  white-space: nowrap;
+  padding-left: 16px;
+}
 
-  .createActionButton {
-    margin: 12px 0 0;
-    text-align: center;
-  }
+.boostCalculator--mobile .createActionButton {
+  margin: 12px 0 0;
+  text-align: center;
 }

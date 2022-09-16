@@ -4,13 +4,16 @@ import {useRouter} from 'next/router';
 import ThreePointSlider from '../threePointSlider/threePointSlider';
 import BigNumber from "bignumber.js";
 import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
+import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
 
-export default function ssBoostCalculator({pair, nft, ve}) {
+export default function ssBoostCalculator({pair, nft, ve, isMobileView = false}) {
   const router = useRouter();
   const boostedType = 'boosted';
 
   const [ isShowNote, setIsShowNote ] = useState(false);
   const [ isShowCreateAction, setIsShowCreateAction ] = useState(false);
+  const [ nftVolume, setNftVolume ] = useState('');
+  const [ boostedNFTAmount, setBoostedNFTAmount ] = useState(0);
   const [ currentAPRPercentage, setCurrentAPRPercentage ] = useState(0);
   const [ boostedAPRPercentage, setBoostedAPRPercentage ] = useState(0);
   const [ currentAPRAmount, setCurrentAPRAmount ] = useState(0);
@@ -63,10 +66,11 @@ export default function ssBoostCalculator({pair, nft, ve}) {
         earnPerDay: parseFloat(earnPerDay),
         earnPerDayBoosted: +parseFloat((boostedAPRPercentage * earnPerDay / minApr).toFixed(2)),
         personalAPR: parseFloat(personalAPR.toFixed(2)),
-        maxPower: parseFloat(maxPower)
+        maxPower: parseFloat(maxPower),
+        lockValue: lockValue.toFixed(2)
       }
     }
-  }, [pair]);
+  }, [pair, ve]);
 
 
   useEffect(() => {
@@ -87,6 +91,7 @@ export default function ssBoostCalculator({pair, nft, ve}) {
 
     if (pair && ve) {
       setBoostedAPRAmount(sliderConfig.earnPerDayBoosted);
+      setNftVolume(sliderConfig.lockValue > boostedNFTAmount ? 0 : (boostedNFTAmount - sliderConfig.lockValue).toFixed(2));
     }
 
   }, [ boostedAPRPercentage, pair ]);
@@ -108,6 +113,7 @@ export default function ssBoostCalculator({pair, nft, ve}) {
         </>
     );
   }
+
   const noteRender = <div className={classes.sliderNote}>
     <div className={classes.sliderNoteWarnSymbol}>
       !
@@ -116,12 +122,16 @@ export default function ssBoostCalculator({pair, nft, ve}) {
       Move slider above to calculate the veCONE Power for Max Boosted Rewards.
     </div>
   </div>;
-  const onChange = ({ current }) => {
-    setBoostedAPRPercentage(current);
+
+  const onChange = ({ currentPct,  currentAmount}) => {
+    setBoostedAPRPercentage(currentPct);
+    setBoostedNFTAmount(currentAmount);
   }
 
+  const className = isMobileView ? [classes.boostCalculator, classes['boostCalculator--mobile']].join(' ') : classes.boostCalculator;
+
   return (
-      <div className={classes.boostCalculator}>
+      <div className={className}>
         <div className={classes.sliderWrapper}>
           <div className={classes.sliderLabels}>
             <div className={classes.sliderLabelsItem}>
@@ -151,7 +161,7 @@ export default function ssBoostCalculator({pair, nft, ve}) {
             </div>
           </div>
         </div>
-        {isShowNote && noteRender}
+        {isShowNote && !isMobileView && noteRender}
         <div className={classes.profitWrapper}>
           <div className={classes.profitItem}>{profitRender()}</div>
           {!isShowNote && <>
@@ -160,7 +170,7 @@ export default function ssBoostCalculator({pair, nft, ve}) {
           </>}
         </div>
         {isShowCreateAction && <div className={classes.createAction}>
-          <div className={classes.createActionNote}>You need to have NFT with 50K veCONE Power. Create or select/merge
+          <div className={classes.createActionNote}>You need to have NFT with {nftVolume} {VE_TOKEN_NAME} Power. Create or select/merge
             NFTs.
           </div>
           <div className={classes.createActionButton} onClick={createAction}>Create veCone</div>

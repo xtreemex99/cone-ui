@@ -1898,6 +1898,10 @@ input[type=number].mediumInputAmount {
   width: 28px;
 }
 
+.boostCalculator {
+  padding-top: 20px;
+}
+
 @media (max-width:1919px) {
   .bigscreenSidebar {
     display:flex;
