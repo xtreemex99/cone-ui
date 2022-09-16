@@ -752,7 +752,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     setActiveTab("withdraw");
   };
 
-  const amount0Changed = (balance) => {
+  const amount0Changed = (event) => {
     const value = formatInputAmount(event.target.value.replace(",", "."));
 
     setAmount0Error(false);
@@ -1140,7 +1140,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                 error={amountError}
                 helperText={amountError}
                 value={/*createLP ? */amountValue/* : `${amountValue}%`*/}
-                onChange={() => amountChanged(assetValue?.balance)}
+                onChange={amountChanged}
                 disabled={
                   depositLoading ||
                   stakeLoading ||
@@ -2168,7 +2168,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                     }
 
                     {!createLP && pair && pair.gauge !== null && <div className={classes.boostCalculator}>
-                      <BoostCalculator pair={pair} nft={token} ve={veToken} isMobileView={windowWidth < 860}/>
+                      <BoostCalculator pair={pair} nft={token} ve={veToken} isMobileView={windowWidth < 860} amount={amount0}/>
                     </div>}
 
                     <div className={classes.myLiqCont}>

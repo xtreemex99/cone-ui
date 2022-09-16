@@ -6,7 +6,7 @@ import BigNumber from "bignumber.js";
 import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
 import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
 
-export default function ssBoostCalculator({pair, nft, ve, isMobileView = false}) {
+export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, amount = 0}) {
   const router = useRouter();
   const boostedType = 'boosted';
 
@@ -29,11 +29,11 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false})
       const minApr = BigNumber(pair.gauge.derivedAPR).times(0.4).toFixed(2);
 
       // gauge balance - exist or future balance, need to set from input field
-      const userGaugeBalance = pair.gauge.balance;
+      const userGaugeBalance = +pair.gauge.balance + parseFloat((amount ? amount : 0).toString());
 
       // lock value it is veCONE power, if no NFT equals zero
-      const lockValue = BigNumber(nft?.lockValue ?? 0)
-      const veRatio = lockValue.div(ve.totalPower).toString()
+      const lockValue = BigNumber(nft?.lockValue ?? 0);
+      const veRatio = lockValue.div(ve.totalPower).toString();
 
       // aprWithout boost will be the same as minAPR
       // personal APR is dynamic
@@ -58,6 +58,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false})
       // console.log('userGaugeBalanceUsd', userGaugeBalanceUsd.toString());
       // console.log('earnPerDay', earnPerDay);
       // console.log('maxPower', maxPower);
+      // console.log('userGaugeBalance', userGaugeBalance, ' = ', pair.gauge.balance, ' + ', parseFloat((amount ? amount : 0).toString()));
       // console.log('-----------------', );
 
       return {
@@ -70,7 +71,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false})
         lockValue: lockValue.toFixed(2)
       }
     }
-  }, [pair, ve]);
+  }, [pair, ve, amount]);
 
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false})
       setAprLimits({min: sliderConfig.minApr, max: sliderConfig.maxApr}); // Limits for slider, min & max APR%
       setVeConeLimits({min: 0, max: sliderConfig.maxPower}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
     }
-  }, [pair]);
+  }, [ pair, amount ]);
 
   useEffect(() => {
     setIsShowNote(boostedAPRPercentage === usedAPRPercentage || boostedAPRPercentage === aprLimits.min);
@@ -94,7 +95,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false})
       setNftVolume(sliderConfig.lockValue > boostedNFTAmount ? 0 : (boostedNFTAmount - sliderConfig.lockValue).toFixed(2));
     }
 
-  }, [ boostedAPRPercentage, pair ]);
+  }, [ boostedAPRPercentage, pair, amount ]);
 
   const createAction = () => {
     router.push('/vest/create').then();
