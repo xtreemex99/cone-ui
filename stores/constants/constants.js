@@ -42,6 +42,12 @@ export const RENAME_ASSETS = {
 
 export const BLACK_LIST_TOKENS = []
 
+export const TAXABLE_TOKENS = [
+  '0xB58c8c06D18987209a38cB75c04eD80C23D07F10'.toLowerCase(), //  Kamikaze (KZE)
+  '0x7DF1938170869AFE410098540c051A8A50308988'.toLowerCase(), //  USDFI
+  '0x9f8BB16f49393eeA4331A39B69071759e54e16ea'.toLowerCase(), //  MDB+
+]
+
 export const BASE_ASSETS_WHITELIST = [
   {
     id: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
