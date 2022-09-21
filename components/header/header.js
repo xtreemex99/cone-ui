@@ -412,7 +412,7 @@ function Header(props) {
                             strokeLinejoin="round" />
                     </svg>
 
-                    <span style={{marginLeft: 15}}>Connect Wallet</span>
+                    <span style={{marginLeft: 15, whiteSpace: 'nowrap',}}>Connect Wallet</span>
                   </Button>
                 )
               }}
