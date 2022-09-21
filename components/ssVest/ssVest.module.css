@@ -787,6 +787,10 @@ input[type=number].massiveInputAmount {
   height: 100%;
 }
 
+.dateInput[type="date"] {
+  -webkit-appearance: none;
+}
+
 .dateInput[type="date"]::-webkit-inner-spin-button,
 .dateInput[type="date"]::-webkit-calendar-picker-indicator {
     display: none;
