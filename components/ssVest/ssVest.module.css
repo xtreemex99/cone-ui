@@ -1003,17 +1003,13 @@ input[type=number].massiveInputAmount {
 
 .titleSection {
   position: absolute;
-
-  top: 55px;
+  top: 26px;
   left: 28px;
-
   display: inline-flex;
   align-items: center;
-
   max-width: 377px;
   width: 100%;
   padding: 17px 25px;
-
   font-family: 'Poppins';
   font-size: 16px;
   font-weight: 400;
@@ -1038,7 +1034,7 @@ input[type=number].massiveInputAmount {
 
 @media (max-width: 1350px) {
   .titleSection {
-    top: 67px;
+    top: 38px;
     padding: 5px;
   }
 
