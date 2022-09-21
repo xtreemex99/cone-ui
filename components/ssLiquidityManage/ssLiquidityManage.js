@@ -22,7 +22,7 @@ import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
 import { formatInputAmount } from "../../utils";
 import AssetSelect from "../../ui/AssetSelect";
-import Loader from "../../ui/Loader";
+// import Loader from "../../ui/Loader";
 import SwitchCustom from "../../ui/Switch";
 import Hint from "../hint/hint";
 import BackButton from "../../ui/BackButton";
@@ -2474,9 +2474,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
               <span className={classes.actionButtonText}>
                 Create LP
               </span>
-                      {depositLoading && (
+                      {/*{depositLoading && (
                           <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                      )}
+                      )}*/}
                     </Button>
                 )}
                 {amount0 !== "" && amount1 !== "" && createLP && pair !== null && (pair.gauge || needAddToWhiteList) && (
@@ -2499,9 +2499,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         ].join(" ")}
                     >
                       <span className={classes.actionButtonText}>Add Liquidity</span>
-                      {depositLoading && (
+                      {/*{depositLoading && (
                           <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                      )}
+                      )}*/}
                     </Button>
                 )}
                 {!pair?.gauge && pair && !needAddToWhiteList && (
@@ -2558,9 +2558,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                 {asset0 && asset1 && (amount0 === "" || amount1 === "") && "Enter Amount"}
                 {!asset0 && !asset1 && (amount0 === "" || amount1 === "") && "Select tokens & Enter Amount"}
               </span>
-                        {depositLoading && (
+                        {/*{depositLoading && (
                             <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                        )}
+                        )}*/}
                       </Button>
                   )}
 
@@ -2585,9 +2585,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                 {withdrawAsset && amount0 !== "" && "Stake LP"}
                 {withdrawAsset && amount0 === "" && "Enter Amount"}
               </span>
-                        {depositLoading && (
+                        {/*{depositLoading && (
                             <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                        )}
+                        )}*/}
                       </Button>
                   )}
                 </div>
@@ -2778,9 +2778,9 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
               {withdrawAsset === null && "Select LP & action"}
             </span>
-                  {depositLoading && (
+                  {/*{depositLoading && (
                       <Loader color={appTheme === "dark" ? "#8F5AE8" : "#8F5AE8"} />
-                  )}
+                  )}*/}
                 </Button>
               </>
           )}
