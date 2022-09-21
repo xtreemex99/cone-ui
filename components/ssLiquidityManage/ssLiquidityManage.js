@@ -2495,6 +2495,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                             depositLoading ||
                             stakeLoading ||
                             depositStakeLoading
+                            || (asset0 && BigNumber(amount0).gt(asset0.balance))
+                            || (asset1 && BigNumber(amount1).gt(asset1.balance))
                         }
                         className={[
                           classes.buttonOverride,
