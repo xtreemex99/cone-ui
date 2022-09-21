@@ -1140,6 +1140,17 @@ input[type=number].mediumInputAmount {
   background: transparent;
 }
 
+.titleSectionInline {
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: flex-start;
+  width: 152px;
+  height: 52px;
+  margin-left: -95px;
+  background: transparent;
+}
+
 .titleTitle {
   position: relative;
   width: 100%;
@@ -1785,6 +1796,15 @@ input[type=number].mediumInputAmount {
   color: #325569;
 }
 
+.depositHeaderInline {
+  margin-left: 6px;
+  font-weight: 500;
+  font-size: 60px;
+  letter-spacing: 0.04em;
+  line-height: 72px;
+  color: #325569;
+}
+
 .depositHeader--dark {
   color: #C6CDD2;
 }
@@ -1954,8 +1974,22 @@ input[type=number].mediumInputAmount {
     left: 95px;
   }
 
+  .titleSectionInline {
+    display: flex;
+    width: 72px;
+    height: 72px;
+    justify-content: center;
+    position: absolute;
+    top: 0px;
+    left: 95px;
+  }
+
   .depositHeader {
     margin-left: 0;
+  }
+
+  .depositHeaderInline {
+    margin-left: 98px;
   }
 
   .bigscreenSidebar {
@@ -1966,6 +2000,13 @@ input[type=number].mediumInputAmount {
 @media (max-width: 860px) {
   .titleSection {
     top: -68px;
+    display: flex;
+    width: 48px;
+    height: 48px;
+  }
+
+  .titleSectionInline {
+    top: 0;
     display: flex;
     width: 48px;
     height: 48px;
@@ -2475,6 +2516,13 @@ input[type=number].mediumInputAmount {
   }
 
   .depositHeader {
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 48px;
+  }
+
+  .depositHeaderInline {
+    margin-left: 62px;
     font-weight: 500;
     font-size: 40px;
     line-height: 48px;

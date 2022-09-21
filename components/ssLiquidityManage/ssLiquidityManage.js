@@ -1370,7 +1370,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             </div>
         )}
 
-        {withdrawAsset !== null && withdrawAction !== null && (
+        {withdrawAsset !== null && withdrawAction !== "" && (
           <div
             className={["g-flex", classes.liqWrapper].join(" ")}
             style={{ width: "100%", marginTop: 20 }}
@@ -1938,6 +1938,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     }
   }, [withdrawAsset?.gauge?.tokenId, vestNFTs.length]);
 
+  const editLPDesign = !!router.query.address
+
   return (
       <div className="g-flex g-flex--justify-center">
         <div className={classes.bigscreenSidebar}>
@@ -1948,14 +1950,15 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
         </div>
         <Paper elevation={0} className={[classes.container, "g-flex-column"]}>
 
-          <div className={classes.toggleButtons}>
-            <Grid container spacing={0} sx={{height: '100%'}}>
-              <Grid item lg={6} md={6} sm={6} xs={6}>
-                <Paper
-                    className={`${activeTab === "deposit" ? classes.buttonActive : classes.button} ${classes.topLeftButton}`}
-                    onClick={toggleDeposit}
-                    disabled={depositLoading}
-                >
+          {editLPDesign &&
+              <div className={classes.toggleButtons}>
+                <Grid container spacing={0} sx={{height: '100%'}}>
+                  <Grid item lg={6} md={6} sm={6} xs={6}>
+                    <Paper
+                        className={`${activeTab === "deposit" ? classes.buttonActive : classes.button} ${classes.topLeftButton}`}
+                        onClick={toggleDeposit}
+                        disabled={depositLoading}
+                    >
                   <span
                       style={{
                         color: activeTab === "deposit"
@@ -1965,19 +1968,19 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                   >
                     Add Liquidity
                   </span>
-                </Paper>
-              </Grid>
+                    </Paper>
+                  </Grid>
 
-              <Grid item lg={6} md={6} sm={6} xs={6}>
-                <Paper
-                    className={`${
-                        activeTab === "withdraw" ? classes.buttonActive : classes.button
-                    } ${classes.bottomLeftButton} ${
-                        appTheme === "dark" ? classes["bottomLeftButton--dark"] : ""
-                    }`}
-                    onClick={toggleWithdraw}
-                    disabled={depositLoading}
-                >
+                  <Grid item lg={6} md={6} sm={6} xs={6}>
+                    <Paper
+                        className={`${
+                            activeTab === "withdraw" ? classes.buttonActive : classes.button
+                        } ${classes.bottomLeftButton} ${
+                            appTheme === "dark" ? classes["bottomLeftButton--dark"] : ""
+                        }`}
+                        onClick={toggleWithdraw}
+                        disabled={depositLoading}
+                    >
                   <span
                       style={{
                         color: activeTab === "withdraw"
@@ -1987,15 +1990,16 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                   >
                    Withdraw Liquidity
                   </span>
-                </Paper>
-              </Grid>
-            </Grid>
-          </div>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </div>
+          }
 
           <div className={[classes.titleTitle, "g-flex g-flex--align-center g-flex--wrap"].join(" ")}>
             <div
                 className={[
-                  classes.titleSection,
+                  editLPDesign ? classes.titleSection : classes.titleSectionInline,
                 ].join(" ")}
             >
               <BackButton
@@ -2007,7 +2011,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             {createLP && activeTab === "deposit" && (
                 <div
                     className={[
-                      classes.depositHeader,
+                      editLPDesign ? classes.depositHeader : classes.depositHeaderInline,
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
@@ -2018,7 +2022,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             {createLP && activeTab === "withdraw" && (
                 <div
                     className={[
-                      classes.depositHeader,
+                      editLPDesign ? classes.depositHeader : classes.depositHeaderInline,
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
@@ -2031,7 +2035,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
             {!createLP && (
                 <div
                     className={[
-                      classes.depositHeader,
+                      editLPDesign ? classes.depositHeader : classes.depositHeaderInline,
                       classes[`depositHeader--${appTheme}`],
                     ].join(" ")}
                 >
