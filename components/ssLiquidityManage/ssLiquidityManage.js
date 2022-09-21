@@ -8,25 +8,20 @@ import {
   InputAdornment,
   CircularProgress,
   Tooltip,
-  IconButton,
   MenuItem,
   InputBase,
   Select,
-  ClickAwayListener, Grid,
+  Grid,
 } from "@mui/material";
 import BigNumber from "bignumber.js";
 import { formatCurrency } from "../../utils";
 import classes from "./ssLiquidityManage.module.css";
 import stores from "../../stores";
-import { ACTIONS, CONTRACTS } from "../../stores/constants";
+import {ACTIONS, CONTRACTS, DEFAULT_ASSET_FROM, DEFAULT_ASSET_TO} from "../../stores/constants";
 import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
-import {
-  ArrowBackIosNew,
-} from "@mui/icons-material";
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
-import { formatSymbol, formatInputAmount } from "../../utils";
+import { formatInputAmount } from "../../utils";
 import AssetSelect from "../../ui/AssetSelect";
-import Borders from "../../ui/Borders";
 import Loader from "../../ui/Loader";
 import SwitchCustom from "../../ui/Switch";
 import Hint from "../hint/hint";
@@ -203,12 +198,12 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       let aa0 = asset0;
       let aa1 = asset1;
       if (storeAssetOptions.length > 0 && asset0 == null) {
-        const asset = storeAssetOptions.filter(a => a.symbol === 'BNB')[0];
+        const asset = storeAssetOptions.filter(a => a.id.toLowerCase() === DEFAULT_ASSET_FROM.toLowerCase())[0];
         setAsset0(asset);
         aa0 = asset;
       }
       if (storeAssetOptions.length > 1 && asset1 == null) {
-        const asset = storeAssetOptions.filter(a => a.symbol === 'CONE')[0];
+        const asset = storeAssetOptions.filter(a => a.id.toLowerCase() === DEFAULT_ASSET_TO.toLowerCase())[0];
         setAsset1(asset);
         aa1 = asset;
       }

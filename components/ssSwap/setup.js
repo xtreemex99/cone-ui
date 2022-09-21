@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import {
   TextField,
   Typography,
-  InputAdornment,
   CircularProgress,
   InputBase,
 } from "@mui/material";
@@ -11,18 +10,19 @@ import { withTheme } from "@mui/styles";
 import {
   formatCurrency,
   formatInputAmount,
-  formatAddress,
-  formatCurrencyWithSymbol,
-  formatCurrencySmall,
 } from "../../utils";
 import classes from "./ssSwap.module.css";
 import stores from "../../stores";
-import {ACTIONS, CONE_ADDRESS, CONTRACTS, WBNB_ADDRESS} from "../../stores/constants";
+import {
+    ACTIONS,
+    CONTRACTS,
+    DEFAULT_ASSET_FROM,
+    DEFAULT_ASSET_TO,
+} from "../../stores/constants";
 import BigNumber from "bignumber.js";
 import { useAppThemeContext } from "../../ui/AppThemeProvider";
 import BtnSwap from "../../ui/BtnSwap";
 import Hint from "../hint/hint";
-import Loader from "../../ui/Loader";
 import AssetSelect from "../../ui/AssetSelect";
 
 function Setup() {
@@ -129,7 +129,7 @@ function Setup() {
               }
               if (!toIndex) {
                   toIndex = baseAsset.findIndex((token) => {
-                      return token.address?.toLowerCase() === CONE_ADDRESS.toLowerCase();
+                      return token.address?.toLowerCase() === DEFAULT_ASSET_TO.toLowerCase();
                   });
               }
 
@@ -150,7 +150,7 @@ function Setup() {
 
               if (!fromIndex) {
                   fromIndex = baseAsset.findIndex((token) => {
-                      return token.address === "BNB";
+                      return token.address.toLowerCase() === DEFAULT_ASSET_FROM.toLowerCase();
                   });
               }
 
