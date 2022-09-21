@@ -1240,6 +1240,22 @@ input[type=number].mediumInputAmount {
 
 
 @media (max-width: 860px) {
+  .massiveInputAssetSelect {
+    margin-bottom: 0;
+    height: 54px;
+  }
+  .massiveInputAssetSelect > div, .massiveInputAssetSelect > div > div, .massiveInputAssetSelect > div > div > div {
+    height: 54px;
+  }
+
+  .massiveInputAssetSelect > div > div > div {
+    padding: 12px 4px;
+  }
+
+  .massiveInputAssetSelect > div > div > div > div > div {
+    padding: 16px 4px;
+  }
+
   .nftItems {
     width: 100%;
   }
@@ -1709,11 +1725,15 @@ input[type=number].mediumInputAmount {
 .liqHeader {
   position: relative;
   height: 40px;
-  padding-left: 42px;
+  padding-left: 24px;
   font-weight: 500;
   font-size: 14px;
   line-height: 120%;
   color: #FFFFFF;
+}
+
+.liqHeaderWithdraw {
+  padding-left: 42px;
 }
 
 .walletIcon {
@@ -2039,10 +2059,11 @@ input[type=number].mediumInputAmount {
 
   .massiveInputAssetSelectSingle {
     min-width: 140px;
+    margin-bottom: 0;
   }
 
   .massiveInputAssetSelectSingle > div > div > div {
-    height: 44px;
+    height: 54px;
   }
 
   .massiveInputAssetSelectSingle > div > div > div > div:before {
@@ -2067,8 +2088,12 @@ input[type=number].mediumInputAmount {
   }
 
   .liqHeaderWithdraw {
-    left: -90px;
-    width: 211px;
+    left: -148px;
+    width: 270px;
+  }
+
+  .mediumdisplayDualIconContainerTitle {
+    font-size: 12px;
   }
 
   .liqTokens {
@@ -2083,11 +2108,11 @@ input[type=number].mediumInputAmount {
     right: 26px;
     font-size: 20px;
     color: #8191B9 !important;
-    top: 66px;
+    top: 52px;
   }
 
   .flyPercentWithdraw {
-    top: 20px;
+    top: 12px;
     right: 4px;
     font-size: 20px;
   }
@@ -2207,7 +2232,7 @@ input[type=number].mediumInputAmount {
 
   .mediumInputContainer {
     width: 100%;
-    height: 61px;
+    height: 54px;
   }
 
   .mediumdisplayDualIconContainer {
@@ -2220,12 +2245,12 @@ input[type=number].mediumInputAmount {
 
   .mediumInputContainer--withdrawAmount0,
   .mediumInputContainer--withdrawAmount1 {
-    border-right: 1px solid #86B9D6;
+    /*border-right: 1px solid #86B9D6;*/
   }
 
   .mediumInputContainer--dark.mediumInputContainer--withdrawAmount0,
   .mediumInputContainer--dark.mediumInputContainer--withdrawAmount1 {
-    border-right: 1px solid #5F7285;
+    /*border-right: 1px solid #5F7285;*/
   }
 
   .swapInputs {
@@ -2253,7 +2278,7 @@ input[type=number].mediumInputAmount {
 
   .massiveInputAmount,
   .massiveInputAmountDate {
-    height: 44px;
+    height: 54px;
   }
 
 
@@ -2496,23 +2521,29 @@ input[type=number].mediumInputAmount {
   }
 
   .liqHeader {
-    padding-left: 10px;
+    padding-left: 20px;
     font-size: 12px;
   }
 
   .liqBody {
-    height: 72px;
+    height: 54px;
   }
 
   .massiveInputAmountUnstake {
     left: 10px;
+    top: 14px;
   }
 
   .tokenTextSecond {
     left: 86px;
-    top: 57px;
+    top: 52px;
     font-size: 14px;
     width: 100%;
+  }
+
+  .labelSelectSecondary {
+    font-size: 14px !important;
+    line-height: 16px !important;
   }
 
   .depositHeader {
@@ -2554,13 +2585,13 @@ input[type=number].mediumInputAmount {
 @media (max-width: 582px) {
   .massiveInputAmount,
   .massiveInputAmountDate {
-    height: 44px;
+    height: 54px;
     margin-top: 0;
   }
 
   .flyPercent {
     position: absolute;
     right: 25px;
-    top: 46px;
+    top: 50px;
   }
 }
