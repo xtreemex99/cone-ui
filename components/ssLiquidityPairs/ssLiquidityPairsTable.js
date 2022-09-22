@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { makeStyles, styled, useTheme } from '@mui/styles';
+import { makeStyles, styled } from '@mui/styles';
 import {
   Button,
   Table,
@@ -17,10 +17,6 @@ import {
   IconButton,
   TextField,
   InputAdornment,
-  Popper,
-  Fade,
-  Grid,
-  Switch,
   Skeleton,
   Accordion,
   AccordionSummary,
@@ -29,11 +25,7 @@ import {
 import { useRouter } from "next/router";
 import BigNumber from 'bignumber.js';
 import {
-  FilterAltOutlined,
-  Search,
-  Add,
   Close,
-  ArrowDropDown,
   ExpandMore,
   ExpandLess,
 } from '@mui/icons-material';
@@ -46,7 +38,6 @@ import TablePaginationActions from '../table-pagination/table-pagination';
 import { formatSymbol } from '../../utils';
 import SwitchCustom from '../../ui/Switch';
 import { TableBodyPlaceholder } from '../../components/table';
-import QuizIcon from "@mui/icons-material/Quiz";
 
 function descendingComparator(a, b, orderBy) {
   if (!a || !b) {
@@ -1889,7 +1880,13 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       tooltip: css.tooltip_wrapper
                                     }}
                                   >
-                                    <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
+                                    <img src={
+                                      (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
+                                        ? "/images/boost.svg"
+                                          : (BigNumber(row?.gauge?.balance).gt(0))
+                                            ? "/images/boost-empty.svg"
+                                            : "/images/icon-info.svg"
+                                    }
                                          width="16px" style={{ marginLeft: 12 }} />
                                   </Tooltip>
                                 </div>
@@ -2894,7 +2891,13 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   tooltip: css.tooltip_wrapper
                                 }}
                               >
-                                <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
+                                <img src={
+                                  (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
+                                      ? "/images/boost.svg"
+                                      : (BigNumber(row?.gauge?.balance).gt(0))
+                                          ? "/images/boost-empty.svg"
+                                          : "/images/icon-info.svg"
+                                }
                                      width="16px" style={{ marginLeft: 5 }} />
                               </Tooltip>
                             </div>
