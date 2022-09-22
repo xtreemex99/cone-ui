@@ -15,7 +15,8 @@ export default function ThreePointSlider({
                                            appTheme = 'dark',
                                            disabled = false,
                                            valueLabelDisplay = 'on',
-                                           onChange
+                                           onChange,
+                                           fixedCallback
                                          }) {
   const trackBackground = '#8191B9';
   const trackUsed = appTheme === 'dark' ? '#779BF4' : '#A2E3A9';
@@ -24,12 +25,11 @@ export default function ThreePointSlider({
   const [ sliderValue, setSliderValue ] = useState(pointCurrent);
 
   const countValue = (value, max = pointMaxValue, min = pointMinValue, maxPct = pointMaxPct, minPct = pointMinPct) => {
-    const pct = value * (max - min) / (maxPct - minPct);
-    return pct.toFixed(0);
+    return +value * (max - min) / (maxPct - minPct);
   };
 
   const formatValue = useCallback((value) => {
-    return numeral(BigNumber(value).toLocaleString()).format(value > 1000 ? '(0a)' : '0.00')
+    return value > 1 ? numeral(BigNumber(value).toLocaleString()).format(value > 1000 ? '(0a)' : '0.00') : fixedCallback(value);
   }, []);
 
   const onSliderChange = (event, value) => {
@@ -38,19 +38,19 @@ export default function ThreePointSlider({
       return;
     }
     setSliderValue(value);
-    onChange({ currentPct: value, currentAmount:  formatValue(countValue(value))});
+    onChange({ currentPct: value, currentAmount:  countValue(value)});
   };
 
   const labelRender = (value) => {
     return <>
-      <div className="item itemPct">{value}%</div>
+      <div className="item itemPct">{formatValue(value)}%</div>
       <div className="item itemValue">{formatValue(countValue(value))}</div>
     </>
   }
 
   const markLabelRender = (pct, value) => {
     return <>
-      <div className='item itemPct'>{pct}%</div>
+      <div className='item itemPct'>{formatValue(pct)}%</div>
       {(!!value || value === 0) && <div className='item itemValue'>{formatValue(value)}</div>}
     </>
   }
@@ -80,8 +80,7 @@ export default function ThreePointSlider({
 
     return styled(Slider)(({ disabled, appTheme, value }) => {
       const countPct = (value, min = pointMinPct, max = pointMaxPct) => {
-        const pct = 100 - 100 * (max - value) / (max - min);
-        return pct.toFixed(0);
+        return 100 - 100 * (max - value) / (max - min);
       };
       const trackColor = `linear-gradient(to right, ${trackUsed} ${countPct(pointUsed)}%, ${trackActive} ${countPct(pointUsed)}%, ${trackActive} ${countPct(value)}%, ${trackBackground} ${countPct(value)}%)`;
 
@@ -141,7 +140,7 @@ export default function ThreePointSlider({
               fontSize: '14px',
               lineHeight: '16px',
               fontWeight: 400,
-              background: 'rgba(23, 29, 45, 0.5)',
+              background: '#161c2c',
               border: '1px solid #1F2B49',
               borderRadius: '4px',
               padding: '4px 12px',
@@ -195,6 +194,8 @@ export default function ThreePointSlider({
             textAlign: 'center'
           },
           '& .item': {
+            background: '#060B17',
+            padding: '0 8px',
             '&:first-of-type': {
               marginBottom: '28px'
             },

@@ -42,6 +42,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
   const [pair, setPair] = useState(null);
   const [veToken, setVeToken] = useState(null);
+  const [pairLoading, setPairLoading] = useState(true);
 
   const [depositLoading, setDepositLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
@@ -198,7 +199,8 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     } else {
       let aa0 = asset0;
       let aa1 = asset1;
-      if (storeAssetOptions.length > 0 && asset0 == null) {
+
+      if (storeAssetOptions.length > 0 && (asset0 == null || asset0.hasOwnProperty('gauge'))) {
         const asset = storeAssetOptions.filter(a => a.symbol === 'BNB')[0];
         setAsset0(asset);
         aa0 = asset;
@@ -1923,7 +1925,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     setAmount1("");
     setAmount1Error(false);
     setCreateLP(nextValue);
-
+    setPair(null);
     if (nextValue) {
       ssUpdated();
     }
@@ -1938,6 +1940,16 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
       setLockedNft(undefined)
     }
   }, [withdrawAsset?.gauge?.tokenId, vestNFTs.length]);
+
+  const isShowBoostCalculator = !!pair && pair.gauge !== null && pair.gauge.boost;
+
+  useEffect(() => {
+    if (!!asset0 && !!asset1) {
+      setPairLoading(false);
+    } else {
+      setPairLoading(true);
+    }
+  }, [asset0, asset1]);
 
   return (
       <div className="g-flex g-flex--justify-center">
@@ -2065,6 +2077,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                         switchToggleCreateLP();
                       }}
                       name={"toggleActive"}
+                      disabled={pairLoading && createLP}
                   />
                 </div>
             )}
@@ -2159,17 +2172,18 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                     </div>
 
                     {!createLP &&
-                        <div className={classes.nftRow} style={{width: '100%',}}>
-                          <div className={classes.nftTitle}>
-                            Attach {VE_TOKEN_NAME} to your LP to receive boosted rewards
+                        <>
+                          <div className={classes.nftRow} style={{width: '100%',}}>
+                            <div className={classes.nftTitle}>
+                              Attach {VE_TOKEN_NAME} to your LP to receive boosted rewards
+                            </div>
+                            <div className={classes.nftItems}>{renderTokenSelect()}</div>
                           </div>
-                          <div className={classes.nftItems}>{renderTokenSelect()}</div>
-                        </div>
+                          {isShowBoostCalculator && <div className={classes.boostCalculator}>
+                            <BoostCalculator pair={pair} nft={token} ve={veToken} isMobileView={windowWidth < 860} amount={amount0}/>
+                          </div>}
+                        </>
                     }
-
-                    {!createLP && pair && pair.gauge !== null && <div className={classes.boostCalculator}>
-                      <BoostCalculator pair={pair} nft={token} ve={veToken} isMobileView={windowWidth < 860} amount={amount0}/>
-                    </div>}
 
                     <div className={classes.myLiqCont}>
                       <div className={classes.myLiq}>
