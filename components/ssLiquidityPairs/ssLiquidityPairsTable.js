@@ -1911,7 +1911,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                     }}
                                     leaveDelay={500}
                                   >
-                                    <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
+                                    <img src={row?.gauge?.boost ? BigNumber(row?.gauge?.boost).gt(0) ? "/images/boost_fired.svg" : "/images/boost.svg" : "/images/icon-info.svg" }
                                          width="16px" style={{ marginLeft: 12 }} />
                                   </Tooltip>
                                 </div>
@@ -2916,7 +2916,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   tooltip: css.tooltip_wrapper
                                 }}
                               >
-                                <img src={(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? "/images/boost.svg": "/images/icon-info.svg" }
+                                <img src={row?.gauge?.boost ? BigNumber(row?.gauge?.boost).gt(0) ? "/images/boost_fired.svg" : "/images/boost.svg" : "/images/icon-info.svg" }
                                      width="16px" style={{ marginLeft: 5 }} />
                               </Tooltip>
                             </div>

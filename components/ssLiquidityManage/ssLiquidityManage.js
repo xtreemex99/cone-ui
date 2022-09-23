@@ -1941,7 +1941,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     }
   }, [withdrawAsset?.gauge?.tokenId, vestNFTs.length]);
 
-  const isShowBoostCalculator = !!pair && pair.gauge !== null && pair.gauge.boost;
+  const isShowBoostCalculator = !!pair && pair.gauge !== null;
 
   useEffect(() => {
     if (!!asset0 && !!asset1) {
