@@ -42,7 +42,6 @@ import SwitchCustom from '../../ui/Switch';
 import { TableBodyPlaceholder } from '../../components/table';
 import BoostCalculator from '../ssLiquidityManage/ssBoostCalculator';
 import stores from '../../stores';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
 
 function descendingComparator(a, b, orderBy) {
   if (!a || !b) {
@@ -1818,20 +1817,8 @@ export default function EnhancedTable({pairs, isLoading}) {
                                           const nft = nfts.reduce((acc, item) => item.totalPower > acc.totalPower ? item : acc, nfts[0]);
 
                                           return <div className={css.boostCalculatorTooltip}>
-                                            <div className={css.calcToValue}>
-                                              <div className={css.lp}>{row.userPosition?.pair?.symbol}</div>
-                                              <InputBase
-                                                  className={css.massiveInputAmount}
-                                                  placeholder="0.00"
-                                                  value={lpAmount}
-                                                  onChange={lpAmountChange}
-                                                  InputProps={{
-                                                    disableUnderline: true,
-                                                  }}
-                                              />
-                                              <span className={css.flyPercent}>%</span>
-                                            </div>
-                                            <BoostCalculator pair={row} ve={veTok} nft={nft} isMobileView={true} amount={lpAmount}/>
+
+                                            <BoostCalculator popuped={true} pair={row} ve={veTok} nft={nft} isMobileView={true} amount={100}/>
                                           </div>
                                         }) :
                                         <div className={css.tooltip}>
@@ -1913,7 +1900,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                     classes={{
                                       tooltip: row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0) ? css.tooltip_boost_wrapper : css.tooltip_wrapper
                                     }}
-                                    leaveDelay={500}
+                                    // leaveDelay={500}
                                   >
                                     <img src={
                                       (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
