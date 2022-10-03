@@ -26,7 +26,11 @@ import {
 } from '@mui/material';
 import { useRouter } from "next/router";
 import BigNumber from 'bignumber.js';
-import { Close } from '@mui/icons-material';
+import {
+  Close,
+  ExpandMore,
+  ExpandLess,
+} from '@mui/icons-material';
 import SortSelect from '../select-sort/select-sort';
 import { formatCurrency, formatInputAmount } from '../../utils';
 import classes from './ssLiquidityPairs.module.css';
@@ -196,7 +200,7 @@ const headCells = [
                 fontSize: 16,
                 fontWeight: 400,
                 lineHeight: '24px',
-
+                
                 border: '1px solid #779BF4',
                 borderRadius: 12,
 
@@ -689,7 +693,7 @@ const useStyles = makeStyles({
     width: 747,
     height: 72,
     paddingRight: 24,
-
+  
     '&:hover': {
       backgroundColor: '#1F2B49 !important',
     },
@@ -1911,7 +1915,13 @@ export default function EnhancedTable({pairs, isLoading}) {
                                     }}
                                     leaveDelay={500}
                                   >
-                                    <img src={row?.gauge?.boost ? BigNumber(row?.gauge?.boost).gt(0) ? "/images/boost_fired.svg" : "/images/boost.svg" : "/images/icon-info.svg" }
+                                    <img src={
+                                      (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
+                                        ? "/images/boost.svg"
+                                          : (BigNumber(row?.gauge?.balance).gt(0))
+                                            ? "/images/boost-empty.svg"
+                                            : "/images/icon-info.svg"
+                                    }
                                          width="16px" style={{ marginLeft: 12 }} />
                                   </Tooltip>
                                 </div>
@@ -2720,7 +2730,7 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       fontSize: 16,
                                       fontWeight: 400,
                                       lineHeight: '24px',
-
+                                      
                                       border: '1px solid #779BF4',
                                       borderRadius: 12,
 
@@ -2916,7 +2926,13 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   tooltip: css.tooltip_wrapper
                                 }}
                               >
-                                <img src={row?.gauge?.boost ? BigNumber(row?.gauge?.boost).gt(0) ? "/images/boost_fired.svg" : "/images/boost.svg" : "/images/icon-info.svg" }
+                                <img src={
+                                  (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
+                                      ? "/images/boost.svg"
+                                      : (BigNumber(row?.gauge?.balance).gt(0))
+                                          ? "/images/boost-empty.svg"
+                                          : "/images/icon-info.svg"
+                                }
                                      width="16px" style={{ marginLeft: 5 }} />
                               </Tooltip>
                             </div>
