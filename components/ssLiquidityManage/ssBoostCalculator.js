@@ -5,8 +5,9 @@ import ThreePointSlider from '../threePointSlider/threePointSlider';
 import BigNumber from "bignumber.js";
 import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
 import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
+// import {InputBase} from '@mui/material';
 
-export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, amount = 0}) {
+export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, amount = 0, popuped = false}) {
   const router = useRouter();
   const boostedType = 'boosted';
 
@@ -22,6 +23,8 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
   const [ aprLimits, setAprLimits ] = useState({ min: 0, max: 100 }); // Percentage only
   const [ veConeLimits, setVeConeLimits ] = useState({ min: 0, max: 1000 });
 
+  const [lpAmount, setLpAmount] = useState(BigNumber(0))
+
   const sliderConfig = useMemo(() => {
     if (pair && ve) {
       // min/max APR is static values, need to calculate proportion between APR to Power for UI
@@ -29,7 +32,8 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       const minApr = BigNumber(pair.gauge.derivedAPR).times(0.4);
 
       // gauge balance - exist or future balance, need to set from input field
-      const userGaugeBalance = +pair.gauge.balance + parseFloat((amount ? amount * pair.gauge.balance / 100 : 0).toString());
+      // const userGaugeBalance = +pair.gauge.balance + parseFloat((amount ? amount * pair.gauge.balance / 100 : 0).toString());
+      const userGaugeBalance = lpAmount;
 
       // lock value it is veCONE power, if no NFT equals zero
       const lockValue = BigNumber(nft?.lockValue ?? 0);
@@ -38,21 +42,25 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       // aprWithout boost will be the same as minAPR
       // personal APR is dynamic
       const {personalAPR, aprWithoutBoost} = calculateBoost(pair, veRatio.toString(), userGaugeBalance);
-
+      // console.log('personalARP', personalAPR)
+      // console.log('pair totalSupply USD', BigNumber(pair.reserveETH).times(pair.ethPrice).toString())
+      // console.log('pair total supply', pair.totalSupply.toString())
       // calc $ per day doesn't depend on anything and simple math on APR and user balance
       const userGaugeBalanceEth = BigNumber(userGaugeBalance).times(BigNumber(pair.reserveETH).div(pair.totalSupply));
       const userGaugeBalanceUsd = userGaugeBalanceEth.times(pair.ethPrice);
-      const earnPerDay = userGaugeBalanceUsd.times(personalAPR).div(365);
+      const earnPerDay = userGaugeBalanceUsd.times(personalAPR).div(365*100);
 
       // max value for the UI, user can have enough power - then show max possible APR
       const maxPower = calculatePowerForMaxBoost(pair, userGaugeBalance, ve.totalPower);
+      // console.log('need ve for max boost', maxPower)
 
       // console.log('-----------------', );
-      // console.log('maxApr', maxApr);
-      // console.log('minApr', minApr);
-      // console.log('userGaugeBalance', userGaugeBalance);
+      // console.log('maxApr', maxApr.toString());
+      // console.log('minApr', minApr.toString());
+      // console.log('userGaugeBalance', userGaugeBalance.toString());
       // console.log('lockValue', lockValue.toString());
-      // console.log('veRatio', veRatio);
+      // console.log('ve lock value', lockValue.toString());
+      // console.log('veRatio', veRatio.toString());
       // console.log('personalAPR', personalAPR.toString());
       // console.log('aprWithoutBoost', aprWithoutBoost.toString());
       // console.log('userGaugeBalanceUsd', userGaugeBalanceUsd.toString());
@@ -73,8 +81,39 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
         lockValue: lockValue
       }
     }
-  }, [pair, ve, nft, amount]);
+  }, [pair, ve, nft, lpAmount]);
 
+  useEffect(() => {
+    if (pair && ve) {
+      // set lpAmount
+      if (popuped) {
+        if (BigNumber(pair?.balance).gt(0) || BigNumber(pair?.gauge?.balance).gt(0)) {
+          setLpAmount(BigNumber(pair?.balance).plus(BigNumber(pair?.gauge?.balance)))
+          // console.log('setLpAmount', BigNumber(pair?.balance).plus(BigNumber(pair?.gauge?.balance)).toString())
+        } else {
+          if (BigNumber(pair?.ethPrice).gt(0)) {
+            // if user dont have liquidity, then calculate $1000 to lpAmount
+            const ethPer1k = BigNumber(1000).div(pair.ethPrice)
+            setLpAmount(BigNumber(pair.totalSupply).times(ethPer1k.div(BigNumber(pair.reserveETH))))
+          } else {
+            setLpAmount(BigNumber("1"))
+          }
+        }
+      } else {
+        if (BigNumber(pair?.balance).gt(0)) {
+          if (amount > 0) {
+            setLpAmount(BigNumber(pair?.balance).times(amount).div(100))
+          } else {
+            setLpAmount(BigNumber(pair?.balance))
+          }
+        } else {
+          if (BigNumber(pair?.gauge?.balance).gt(0)) {
+            setLpAmount(BigNumber(pair?.gauge?.balance))
+          }
+        }
+      }
+    }
+  }, [ pair, amount ]);
 
   useEffect(() => {
     if (pair && ve) {
@@ -82,11 +121,13 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       setCurrentAPRAmount(sliderConfig.earnPerDay); // APR amount per day (show in Calculator)
       setBoostedAPRPercentage(sliderConfig.personalAPR); // Default value for boosted APR%.
       setUsedAPRPercentage(sliderConfig.personalAPR); // Value of user's used veCone % (Slider will start from this position)
+      // console.log('setUsedAPRPercentage', sliderConfig.personalAPR)
 
       setAprLimits({min: sliderConfig.minApr, max: sliderConfig.maxApr}); // Limits for slider, min & max APR%
       setVeConeLimits({min: 0, max: sliderConfig.maxPower}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
+      // console.log('setVeConeLimits', {min: 0, max: sliderConfig.maxPower})
     }
-  }, [ pair, amount ]);
+  }, [ pair, lpAmount ]);
 
   useEffect(() => {
     setIsShowNote(boostedAPRPercentage === usedAPRPercentage || boostedAPRPercentage === aprLimits.min);
@@ -97,7 +138,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       setNftVolume(sliderConfig.lockValue > boostedNFTAmount ? 0 : (boostedNFTAmount - parseFloat(sliderConfig.lockValue)).toString());
     }
 
-  }, [ boostedAPRPercentage, pair, amount ]);
+  }, [ boostedAPRPercentage, pair, lpAmount ]);
 
   const createAction = () => {
     router.push('/vest/create').then();
@@ -128,6 +169,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
   </div>;
 
   const onChange = ({ currentPct,  currentAmount}) => {
+    // console.log(currentPct, currentAmount)
     setBoostedAPRPercentage(currentPct);
     setBoostedNFTAmount(currentAmount);
   }
@@ -137,6 +179,25 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
   return (
       <div className={className}>
         <div className={classes.sliderWrapper}>
+          {popuped &&
+              <div className={classes.calcToValue}>
+                <div className={classes.lp}>{pair.symbol}</div>
+                <div className={classes.lpamount}>{lpAmount.toString().slice(0, 12)}</div>
+                {/*<InputBase
+                    className={classes.massiveInputAmount}
+                    placeholder="0.00"
+                    value={lpAmount}
+                    disabled={true}
+                    onChange={e => {
+                      setLpAmount(e.target.value)
+                    }}
+                    InputProps={{
+                      disableUnderline: true,
+                    }}
+                />*/}
+                {/*<span className={css.flyPercent}>%</span>*/}
+              </div>
+          }
           <div className={classes.sliderLabels}>
             <div className={classes.sliderLabelsItem}>
               Min-Max APR
@@ -175,7 +236,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
           </>}
         </div>
         {isShowCreateAction && <div className={classes.createAction}>
-          <div className={classes.createActionNote}>You need to have NFT with {fixed(nftVolume)} {VE_TOKEN_NAME} Power. Create or select/merge
+          <div className={classes.createActionNote}>You need to have NFT with {fixed(boostedNFTAmount)} {VE_TOKEN_NAME} Power. Create or select/merge
             NFTs.
           </div>
           <div className={classes.createActionButton} onClick={createAction}>Create veCone</div>

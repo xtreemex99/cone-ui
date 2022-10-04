@@ -25,7 +25,7 @@ export default function ThreePointSlider({
   const [ sliderValue, setSliderValue ] = useState(pointCurrent);
 
   const countValue = (value, max = pointMaxValue, min = pointMinValue, maxPct = pointMaxPct, minPct = pointMinPct) => {
-    return +value * (max - min) / (maxPct - minPct);
+    return (+value - minPct) * (max - min) / (maxPct - minPct);
   };
 
   const formatValue = useCallback((value) => {
@@ -35,6 +35,7 @@ export default function ThreePointSlider({
   const onSliderChange = (event, value) => {
     if ( value < pointUsed ) {
       setSliderValue(pointUsed);
+      onChange({ currentPct: pointUsed, currentAmount:  countValue(pointUsed)});
       return;
     }
     setSliderValue(value);
@@ -66,7 +67,9 @@ export default function ThreePointSlider({
         label: markLabelRender(pointMaxPct, pointMaxValue),
       }
     ];
-    if ( pointMinPct !== pointUsed && pointMaxPct !== pointUsed ) {
+    // console.log('pointUsed',pointUsed)
+    // console.log('pointMinPct',pointMinPct)
+    if (BigNumber(pointUsed).gt(0) && pointMinPct !== pointUsed && pointMaxPct !== pointUsed && BigNumber(pointUsed).minus(BigNumber(pointUsed).div(100)).gt(BigNumber(pointMinPct)) ) {
       marks.push({
         value: pointUsed,
         label: labelRender(pointUsed)

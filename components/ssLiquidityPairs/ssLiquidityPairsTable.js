@@ -1811,13 +1811,12 @@ export default function EnhancedTable({pairs, isLoading}) {
                                   <Tooltip
                                     title={
                                       <>
-                                        {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) ? [1].map(() => {
+                                        {1 ? [1].map(() => {
                                           const veTok = stores.stableSwapStore.getStore("veToken");
                                           const nfts = stores.stableSwapStore.getStore("vestNFTs") ?? [];
                                           const nft = nfts.reduce((acc, item) => item.totalPower > acc.totalPower ? item : acc, nfts[0]);
 
                                           return <div className={css.boostCalculatorTooltip}>
-
                                             <BoostCalculator popuped={true} pair={row} ve={veTok} nft={nft} isMobileView={true} amount={100}/>
                                           </div>
                                         }) :
@@ -1898,14 +1897,14 @@ export default function EnhancedTable({pairs, isLoading}) {
                                       </>
                                     }
                                     classes={{
-                                      tooltip: row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0) ? css.tooltip_boost_wrapper : css.tooltip_wrapper
+                                      tooltip: /*row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0) ? */css.tooltip_boost_wrapper/* : css.tooltip_wrapper*/
                                     }}
                                     // leaveDelay={500}
                                   >
                                     <img src={
-                                      (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
-                                        ? "/images/boost.svg"
-                                          : (BigNumber(row?.gauge?.balance).gt(0))
+                                      (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0) && BigNumber(row?.gauge?.balance).gt(0))
+                                        ? "/images/boost_fired.svg"
+                                          : (BigNumber(row?.balance).gt(0))
                                             ? "/images/boost-empty.svg"
                                             : "/images/icon-info.svg"
                                     }
@@ -2823,100 +2822,111 @@ export default function EnhancedTable({pairs, isLoading}) {
                               <Tooltip
                                 title={
                                   <React.Fragment>
-                                    <div className={css.tooltip}>
-                                      <div className={css.tooltip_group}>
+                                    {1 ? [1].map(() => {
+                                          const veTok = stores.stableSwapStore.getStore("veToken");
+                                          const nfts = stores.stableSwapStore.getStore("vestNFTs") ?? [];
+                                          const nft = nfts.reduce((acc, item) => item.totalPower > acc.totalPower ? item : acc, nfts[0]);
 
-                                        {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
-                                          <div className={css.tooltip_row}>
-                                            <b style={{ color: "green" }}>
-                                              x{BigNumber(row?.gauge?.boost).toFixed(2)}
-                                            </b>{" "}
-                                            <b style={{ color: "green" }}>Your boost</b>
+                                          return <div className={css.boostCalculatorTooltip}>
+                                            <BoostCalculator popuped={true} pair={row} ve={veTok} nft={nft}
+                                                             isMobileView={true} amount={100}/>
                                           </div>
-                                        }
+                                        }) :
+                                        <div className={css.tooltip}>
+                                          <div className={css.tooltip_group}>
 
-                                        {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
-                                          <div className={css.tooltip_row}>
-                                            <b>
-                                              {BigNumber(row?.gauge?.personalAPR).toFixed(2)}%
-                                            </b>{" "}
-                                            <b>Your APR</b>
-                                          </div>
-                                        }
+                                            {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
+                                                <div className={css.tooltip_row}>
+                                                  <b style={{color: "green"}}>
+                                                    x{BigNumber(row?.gauge?.boost).toFixed(2)}
+                                                  </b>{" "}
+                                                  <b style={{color: "green"}}>Your boost</b>
+                                                </div>
+                                            }
 
-                                        {(row?.gauge?.additionalApr0 && BigNumber(row?.gauge?.additionalApr0).gt(0)) &&
-                                          <div className={css.tooltip_row}>
-                                            <b>
-                                              {formatCurrency(
-                                                BigNumber(row?.gauge?.additionalApr0),
-                                                2
-                                              )}
-                                              %
-                                            </b>{" "}
-                                            Bonus {row.token0.symbol} APR
-                                          </div>
-                                        }
-                                        {(row?.gauge?.additionalApr1 && BigNumber(row?.gauge?.additionalApr1).gt(0)) &&
-                                          <div className={css.tooltip_row}>
-                                            <b>
-                                              {formatCurrency(
-                                                BigNumber(row?.gauge?.additionalApr1),
-                                                2
-                                              )}
-                                              %
-                                            </b>{" "}
-                                            Bonus {row.token1.symbol} APR
-                                          </div>
-                                        }
-                                      </div>
+                                            {(row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0)) &&
+                                                <div className={css.tooltip_row}>
+                                                  <b>
+                                                    {BigNumber(row?.gauge?.personalAPR).toFixed(2)}%
+                                                  </b>{" "}
+                                                  <b>Your APR</b>
+                                                </div>
+                                            }
 
-                                      <div className={css.tooltip_group}>
-                                        <div className={css.tooltip_row}>
-                                          <b>
-                                            {formatCurrency(
-                                              BigNumber(row?.gauge?.derivedAPR)
-                                                .div(100)
-                                                .times(40),
-                                              2
-                                            )}
-                                            %
-                                          </b>{" "}
-                                          <b>Staking APR</b>
+                                            {(row?.gauge?.additionalApr0 && BigNumber(row?.gauge?.additionalApr0).gt(0)) &&
+                                                <div className={css.tooltip_row}>
+                                                  <b>
+                                                    {formatCurrency(
+                                                        BigNumber(row?.gauge?.additionalApr0),
+                                                        2
+                                                    )}
+                                                    %
+                                                  </b>{" "}
+                                                  Bonus {row.token0.symbol} APR
+                                                </div>
+                                            }
+                                            {(row?.gauge?.additionalApr1 && BigNumber(row?.gauge?.additionalApr1).gt(0)) &&
+                                                <div className={css.tooltip_row}>
+                                                  <b>
+                                                    {formatCurrency(
+                                                        BigNumber(row?.gauge?.additionalApr1),
+                                                        2
+                                                    )}
+                                                    %
+                                                  </b>{" "}
+                                                  Bonus {row.token1.symbol} APR
+                                                </div>
+                                            }
+                                          </div>
+
+                                          <div className={css.tooltip_group}>
+                                            <div className={css.tooltip_row}>
+                                              <b>
+                                                {formatCurrency(
+                                                    BigNumber(row?.gauge?.derivedAPR)
+                                                        .div(100)
+                                                        .times(40),
+                                                    2
+                                                )}
+                                                %
+                                              </b>{" "}
+                                              <b>Staking APR</b>
+                                            </div>
+                                            <div className={css.tooltip_row}>
+                                              <b>
+                                                {formatCurrency(
+                                                    BigNumber(row?.gauge?.derivedAPR)
+                                                        .div(100)
+                                                        .times(40),
+                                                    2
+                                                )}
+                                                %
+                                              </b>{" "}
+                                              Min APR
+                                            </div>
+                                            <div className={css.tooltip_row}>
+                                              <b>
+                                                {formatCurrency(
+                                                    BigNumber(row?.gauge?.derivedAPR),
+                                                    2
+                                                )}
+                                                %
+                                              </b>{" "}
+                                              Max APR
+                                            </div>
+                                          </div>
                                         </div>
-                                        <div className={css.tooltip_row}>
-                                          <b>
-                                            {formatCurrency(
-                                              BigNumber(row?.gauge?.derivedAPR)
-                                                .div(100)
-                                                .times(40),
-                                              2
-                                            )}
-                                            %
-                                          </b>{" "}
-                                          Min APR
-                                        </div>
-                                        <div className={css.tooltip_row}>
-                                          <b>
-                                            {formatCurrency(
-                                              BigNumber(row?.gauge?.derivedAPR),
-                                              2
-                                            )}
-                                            %
-                                          </b>{" "}
-                                          Max APR
-                                        </div>
-                                      </div>
-                                    </div>
+                                    }
                                   </React.Fragment>
                                 }
                                 classes={{
-                                  tooltip: css.tooltip_wrapper
+                                  tooltip: css.tooltip_boost_wrapper
                                 }}
                               >
                                 <img src={
-                                  (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0))
-                                      ? "/images/boost.svg"
-                                      : (BigNumber(row?.gauge?.balance).gt(0))
+                                  (row?.gauge?.boost && BigNumber(row?.gauge?.boost).gt(0) && BigNumber(row?.gauge?.balance).gt(0))
+                                      ? "/images/boost_fired.svg"
+                                      : (BigNumber(row?.balance).gt(0))
                                           ? "/images/boost-empty.svg"
                                           : "/images/icon-info.svg"
                                 }

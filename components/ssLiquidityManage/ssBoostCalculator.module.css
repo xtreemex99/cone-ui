@@ -106,6 +106,7 @@
   width: 100%;
   color: #8191B9;
   padding-top: 25px;
+  padding-left: 6px;
 }
 
 .sliderNote {
@@ -256,4 +257,48 @@
 .boostCalculator--mobile .createActionButton {
   margin: 12px 0 0;
   text-align: center;
+}
+
+.calcToValue {
+  margin-bottom: 20px;
+  display: flex;
+  position: relative;
+  justify-content: space-between;
+  align-content: center;
+  align-items: center;
+  padding: 8px 0 0;
+}
+.calcToValue .lp {
+  color: #8191B9;
+  font-size: 14px;
+  line-height: 16px;
+}
+.lpamount {
+  width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #8191B9;
+  font-size: 14px;
+  line-height: 16px;
+}
+.calcToValue .massiveInputAmount {
+  display: flex;
+  flex-grow: 1;
+  padding: 0 12px;
+  color: #ffffff;
+  margin: 0;
+  border-radius: 12px;
+  height: 38px;
+  max-width: 50%;
+  background: #171D2D;
+  border: 1px solid #779BF4;
+  font-size: 14px;
+  line-height: 38px;
+  text-transform: uppercase;
+}
+.calcToValue .massiveInputAmount:hover {
+  background-color: #1F2B49 !important;
+}
+.calcToValue .massiveInputAmount::placeholder {
+  color: #8191B9 !important;
 }

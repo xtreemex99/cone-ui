@@ -753,7 +753,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     setActiveTab("withdraw");
   };
 
-  const amount0Changed = (event) => {
+  const amount0Changed = (balance) => {
     const value = formatInputAmount(event.target.value.replace(",", "."));
 
     setAmount0Error(false);
