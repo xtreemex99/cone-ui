@@ -200,9 +200,9 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
         <div className={classes.sliderWrapper}>
           {popuped &&
               <div className={classes.calcToValue}>
-                <div className={classes.lp}>{pair.symbol}</div>
-                <div className={classes.lpamount}>{lpAmount.toString().slice(0, 12)}</div>
+                <div className={classes.lp}>Calculated for</div>
                 <div className={classes.usdamount}>${lpAmount.div(BigNumber(pair.totalSupply)).times(BigNumber(pair.reserveETH)).times(pair.ethPrice).toFixed(2)}</div>
+                <div className={classes.lpamount}>({lpAmount.toString().slice(0, 12)})</div>
                 {/*<InputBase
                     className={classes.massiveInputAmount}
                     placeholder="0.00"
