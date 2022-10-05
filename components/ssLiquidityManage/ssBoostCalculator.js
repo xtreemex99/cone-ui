@@ -132,7 +132,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
         }
       }
     }
-  }, [ pair, amount ]);
+  }, [ pair, amount, nft ]);
 
   useEffect(() => {
     if (pair && ve) {
@@ -146,7 +146,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       setVeConeLimits({min: 0, max: sliderConfig.maxPower}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
       // console.log('setVeConeLimits', {min: 0, max: sliderConfig.maxPower})
     }
-  }, [ pair, lpAmount ]);
+  }, [ pair, lpAmount, nft ]);
 
   useEffect(() => {
     setIsShowNote(boostedAPRPercentage === usedAPRPercentage || boostedAPRPercentage === aprLimits.min);
@@ -157,7 +157,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       setNftVolume(sliderConfig.lockValue > boostedNFTAmount ? 0 : (boostedNFTAmount - parseFloat(sliderConfig.lockValue)).toString());
     }
 
-  }, [ boostedAPRPercentage, pair, lpAmount ]);
+  }, [ boostedAPRPercentage, pair, lpAmount, nft ]);
 
   const createAction = () => {
     router.push('/vest/create').then();
