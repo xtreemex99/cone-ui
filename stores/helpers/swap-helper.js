@@ -112,7 +112,7 @@ export const swap = async (
       func = "swapExactTokensForTokensSupportingFeeOnTransferTokens";
     }
 
-    if (fromAsset.address === "BNB") {
+    if (fromAsset.address === CONTRACTS.FTM_SYMBOL) {
       func = "swapExactMATICForTokens";
       params = [
         sendMinAmountOut,
@@ -122,7 +122,7 @@ export const swap = async (
       ];
       sendValue = sendFromAmount;
     }
-    if (toAsset.address === "BNB") {
+    if (toAsset.address === CONTRACTS.FTM_SYMBOL) {
       func = "swapExactTokensForMATIC";
       if (
         fromAsset.address.toLowerCase() ===

@@ -24,7 +24,7 @@ import {
   DEFAULT_ASSET_FROM,
   ETHERSCAN_URL,
 } from '../../stores/constants';
-import {FTM_ADDRESS, WFTM_ADDRESS} from '../../stores/constants/contracts'
+import {FTM_ADDRESS, WFTM_ADDRESS, FTM_SYMBOL} from '../../stores/constants/contracts'
 
 import { useAppThemeContext } from '../../ui/AppThemeProvider';
 import BackButton from "../../ui/BackButton";
@@ -44,7 +44,7 @@ export default function ssBribeCreate() {
   const ssUpdated = async () => {
     const storeAssetOptions = stores.stableSwapStore.getStore('baseAssets');
     let filteredStoreAssetOptions = storeAssetOptions.filter((option) => {
-      return option.address !== 'BNB';
+      return option.address !== FTM_SYMBOL;
     });
     const storePairs = stores.stableSwapStore.getStore('pairs');
     setAssetOptions(filteredStoreAssetOptions);
@@ -104,7 +104,7 @@ export default function ssBribeCreate() {
     const assetsUpdated = () => {
       const baseAsset = stores.stableSwapStore.getStore('baseAssets');
       let filteredStoreAssetOptions = baseAsset.filter((option) => {
-        return option.address !== 'BNB';
+        return option.address !== FTM_SYMBOL;
       });
       setAssetOptions(filteredStoreAssetOptions);
     };

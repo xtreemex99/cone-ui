@@ -457,7 +457,7 @@ class Store {
       if (!asset) {
         return;
       }
-      if (asset.address === "BNB") {
+      if (asset.address === CONTRACTS.FTM_SYMBOL) {
         asset.balance = formatBN(await web3.eth.getBalance(account))
       } else {
         asset.balance = await getTokenBalance(assetAddress, web3, account, asset.decimals)
