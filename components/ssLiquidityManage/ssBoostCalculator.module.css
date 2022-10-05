@@ -281,6 +281,11 @@
   font-size: 14px;
   line-height: 16px;
 }
+.usdamount {
+  color: #8191B9;
+  font-size: 14px;
+  line-height: 16px;
+}
 .calcToValue .massiveInputAmount {
   display: flex;
   flex-grow: 1;
