@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import classes from './ssBoostCalculator.module.css';
 import {useRouter} from 'next/router';
 import ThreePointSlider from '../threePointSlider/threePointSlider';
+import ThreePointSliderForTooltip from '../threePointSlider/threePointSliderForTooltip';
 import BigNumber from "bignumber.js";
 import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
 import { formatCurrency } from '../../utils';
@@ -132,7 +133,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
         }
       }
     }
-  }, [ pair, amount ]);
+  }, [ pair, amount, nft ]);
 
   useEffect(() => {
     if (pair && ve) {
@@ -146,7 +147,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       setVeConeLimits({min: 0, max: sliderConfig.maxPower}); // Limits for slider, veCone min & max. It should be linear dependency with APR%
       // console.log('setVeConeLimits', {min: 0, max: sliderConfig.maxPower})
     }
-  }, [ pair, lpAmount ]);
+  }, [ pair, lpAmount, nft ]);
 
   useEffect(() => {
     setIsShowNote(boostedAPRPercentage === usedAPRPercentage || boostedAPRPercentage === aprLimits.min);
@@ -157,7 +158,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       setNftVolume(sliderConfig.lockValue > boostedNFTAmount ? 0 : (boostedNFTAmount - parseFloat(sliderConfig.lockValue)).toString());
     }
 
-  }, [ boostedAPRPercentage, pair, lpAmount ]);
+  }, [ boostedAPRPercentage, pair, lpAmount, nft ]);
 
   const createAction = () => {
     router.push('/vest/create').then();
@@ -200,9 +201,9 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
         <div className={classes.sliderWrapper}>
           {popuped &&
               <div className={classes.calcToValue}>
-                <div className={classes.lp}>{pair.symbol}</div>
-                <div className={classes.lpamount}>{lpAmount.toString().slice(0, 12)}</div>
+                <div className={classes.lp}>Calculated for</div>
                 <div className={classes.usdamount}>${lpAmount.div(BigNumber(pair.totalSupply)).times(BigNumber(pair.reserveETH)).times(pair.ethPrice).toFixed(2)}</div>
+                <div className={classes.lpamount}>({lpAmount.toString().slice(0, 12)})</div>
                 {/*<InputBase
                     className={classes.massiveInputAmount}
                     placeholder="0.00"
@@ -227,7 +228,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
             </div>
           </div>
           <div className={classes.slider}>
-            <ThreePointSlider
+            {popuped ? <ThreePointSliderForTooltip
                 valueLabelDisplay="on"
                 pointCurrent={currentAPRPercentage}
                 pointUsed={usedAPRPercentage}
@@ -239,7 +240,19 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
                 disabled={false}
                 onChange={onChange}
                 fixedCallback={fixed}
-            />
+            /> : <ThreePointSlider
+                valueLabelDisplay="on"
+                pointCurrent={currentAPRPercentage}
+                pointUsed={usedAPRPercentage}
+                pointMinPct={aprLimits.min}
+                pointMaxPct={aprLimits.max}
+                pointMinValue={veConeLimits.min}
+                pointMaxValue={veConeLimits.max}
+                step={1}
+                disabled={false}
+                onChange={onChange}
+                fixedCallback={fixed}
+            />}
           </div>
           <div className={[ classes.sliderLabels, classes[ 'sliderLabels--mobile' ] ].join(' ')}>
             <div className={classes.sliderLabelsItem}>

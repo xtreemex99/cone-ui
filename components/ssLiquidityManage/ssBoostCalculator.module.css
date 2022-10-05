@@ -257,6 +257,7 @@
 .boostCalculator--mobile .createActionButton {
   margin: 12px 0 0;
   text-align: center;
+  justify-content: center;
 }
 
 .calcToValue {
@@ -274,7 +275,7 @@
   line-height: 16px;
 }
 .lpamount {
-  width: 100px;
+  width: 110px;
   white-space: nowrap;
   overflow: hidden;
   color: #8191B9;
