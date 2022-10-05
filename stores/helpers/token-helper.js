@@ -1,21 +1,16 @@
 import DEFAULT_TOKEN_LIST from './../constants/tokenlists/pancakeswap-extended.json'
 import {
-  ACTIONS,
   BASE_ASSETS_WHITELIST,
   BLACK_LIST_TOKENS,
   CONE_ADDRESS,
-  CONTRACTS, NETWORK_TOKEN,
+  CONTRACTS,
   QUERIES,
   RENAME_ASSETS,
-  WBNB_ADDRESS,
   NETWORK_TOKEN_NAME
 } from "./../constants";
 import {formatBN, removeDuplicate} from '../../utils';
-import axios from "axios";
 import {getLocalAssets} from "./local-storage-helper";
 import {createClient} from "urql";
-import BigNumber from "bignumber.js";
-import stores from "../index";
 
 const client = createClient({url: process.env.NEXT_PUBLIC_API});
 
@@ -178,7 +173,7 @@ export const getBalancesForBaseAssets = async (web3, account, baseAssets, multic
     let tokens = [];
     for (let i = 0; i < baseAssets.length; i++) {
       const asset = baseAssets[i];
-      if (asset.address === "BNB") {
+      if (asset.address === CONTRACTS.FTM_SYMBOL) {
         asset.balance = formatBN(await web3.eth.getBalance(account));
         continue;
       }

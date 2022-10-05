@@ -30,10 +30,10 @@ export const createPairDeposit = async (
 
     let toki0 = token0.address;
     let toki1 = token1.address;
-    if (token0.address === "BNB") {
+    if (token0.address === CONTRACTS.FTM_SYMBOL) {
       toki0 = CONTRACTS.WFTM_ADDRESS;
     }
-    if (token1.address === "BNB") {
+    if (token1.address === CONTRACTS.FTM_SYMBOL) {
       toki1 = CONTRACTS.WFTM_ADDRESS;
     }
 
@@ -113,7 +113,7 @@ export const createPairDeposit = async (
     let allowance1;
 
     // CHECK ALLOWANCES AND SET TX DISPLAY
-    if (token0.address !== "BNB") {
+    if (token0.address !== CONTRACTS.FTM_SYMBOL) {
       allowance0 = await getTokenAllowance(web3, token0, account, CONTRACTS.ROUTER_ADDRESS);
       if (BigNumber(allowance0).lt(amount0)) {
         emitter.emit(ACTIONS.TX_STATUS, {
@@ -136,7 +136,7 @@ export const createPairDeposit = async (
       });
     }
 
-    if (token1.address !== "BNB") {
+    if (token1.address !== CONTRACTS.FTM_SYMBOL) {
       allowance1 = await getTokenAllowance(web3, token1, account, CONTRACTS.ROUTER_ADDRESS);
       if (BigNumber(allowance1).lt(amount1)) {
         emitter.emit(ACTIONS.TX_STATUS, {
@@ -256,7 +256,7 @@ export const createPairDeposit = async (
     ];
     let sendValue = null;
 
-    if (token0.address === "BNB") {
+    if (token0.address === CONTRACTS.FTM_SYMBOL) {
       func = "addLiquidityMATIC";
       params = [
         token1.address,
@@ -269,7 +269,7 @@ export const createPairDeposit = async (
       ];
       sendValue = sendAmount0;
     }
-    if (token1.address === "BNB") {
+    if (token1.address === CONTRACTS.FTM_SYMBOL) {
       func = "addLiquidityMATIC";
       params = [
         token0.address,
@@ -306,10 +306,10 @@ export const createPairDeposit = async (
           // GET PAIR FOR NEWLY CREATED LIQUIDITY POOL
           let tok0 = token0.address;
           let tok1 = token1.address;
-          if (token0.address === "BNB") {
+          if (token0.address === CONTRACTS.FTM_SYMBOL) {
             tok0 = CONTRACTS.WFTM_ADDRESS;
           }
-          if (token1.address === "BNB") {
+          if (token1.address === CONTRACTS.FTM_SYMBOL) {
             tok1 = CONTRACTS.WFTM_ADDRESS;
           }
           const pairFor = await getPairAddressByTokens(web3, tok0, tok1, isStable);
