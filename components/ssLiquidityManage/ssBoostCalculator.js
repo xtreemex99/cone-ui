@@ -4,6 +4,7 @@ import {useRouter} from 'next/router';
 import ThreePointSlider from '../threePointSlider/threePointSlider';
 import BigNumber from "bignumber.js";
 import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
+import { formatCurrency } from '../../utils';
 import {VE_TOKEN_NAME} from '../../stores/constants/contracts'
 // import {InputBase} from '@mui/material';
 
@@ -42,6 +43,24 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       // aprWithout boost will be the same as minAPR
       // personal APR is dynamic
       const {personalAPR, aprWithoutBoost} = calculateBoost(pair, veRatio.toString(), userGaugeBalance);
+
+      let personalAPRwithBonus = personalAPR;
+      let minAprWithBonus = minApr;
+      let maxAprWithBonus = maxApr;
+      if (pair?.gauge?.additionalApr0 && BigNumber(pair?.gauge?.additionalApr0).gt(0)) {
+        personalAPRwithBonus = personalAPRwithBonus.plus(pair?.gauge?.additionalApr0)
+        minAprWithBonus = minAprWithBonus.plus(pair?.gauge?.additionalApr0)
+        maxAprWithBonus = maxAprWithBonus.plus(pair?.gauge?.additionalApr0)
+      }
+      if (pair?.gauge?.additionalApr1 && BigNumber(pair?.gauge?.additionalApr1).gt(0)) {
+        personalAPRwithBonus = personalAPRwithBonus.plus(pair?.gauge?.additionalApr1)
+        minAprWithBonus = minAprWithBonus.plus(pair?.gauge?.additionalApr1)
+        maxAprWithBonus = maxAprWithBonus.plus(pair?.gauge?.additionalApr1)
+      }
+
+      // console.log(personalAPR.toString())
+      // console.log(personalAPRwithBonus.toString())
+
       // console.log('personalARP', personalAPR)
       // console.log('pair totalSupply USD', BigNumber(pair.reserveETH).times(pair.ethPrice).toString())
       // console.log('pair total supply', pair.totalSupply.toString())
@@ -73,10 +92,10 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
       // console.log('ve', ve);
       // console.log('-----------------', );
       return {
-        maxApr: parseFloat(maxApr),
-        minApr: parseFloat(minApr),
+        maxApr: parseFloat(maxAprWithBonus),
+        minApr: parseFloat(minAprWithBonus),
         earnPerDay: parseFloat(earnPerDay),
-        personalAPR: parseFloat(personalAPR),
+        personalAPR: parseFloat(personalAPRwithBonus),
         maxPower: parseFloat(maxPower),
         lockValue: lockValue
       }
@@ -228,6 +247,41 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
           </div>
         </div>
         {isShowNote && !isMobileView && noteRender}
+        {(pair.gauge?.additionalApr0 && BigNumber(pair?.gauge?.additionalApr0).gt(0)) || (pair.gauge?.additionalApr1 && BigNumber(pair?.gauge?.additionalApr1).gt(0)) &&
+            <div className={classes.profitWrapper} style={{marginBottom: 12,}}>
+              {(pair.gauge?.additionalApr0 && BigNumber(pair?.gauge?.additionalApr0).gt(0)) &&
+                  <div className={classes.profitItem}>
+                    <div className={[ classes.profitLabel, classes[ `profitLabel--shortage` ] ].join(' ')}>
+                      Bonus {pair.token0.symbol} APR
+                      <span style={{marginLeft: 4,}}>
+                        {formatCurrency(
+                            BigNumber(pair?.gauge?.additionalApr0),
+                            2
+                        )}
+                        %
+                      </span>
+                    </div>
+                  </div>
+              }
+              {(pair.gauge?.additionalApr0 && BigNumber(pair?.gauge?.additionalApr0).gt(0)) && (pair.gauge?.additionalApr1 && BigNumber(pair?.gauge?.additionalApr1).gt(0)) &&
+                  <div className={classes.profitItemDivider}></div>
+              }
+              {(pair.gauge?.additionalApr1 && BigNumber(pair?.gauge?.additionalApr1).gt(0)) &&
+                  <div className={classes.profitItem}>
+                    <div className={[ classes.profitLabel, classes[ `profitLabel--shortage` ] ].join(' ')}>
+                      Bonus {pair.token1.symbol} APR
+                      <span style={{marginLeft: 4,}}>
+                        {formatCurrency(
+                            BigNumber(pair?.gauge?.additionalApr1),
+                            2
+                        )}
+                        %
+                      </span>{" "}
+                    </div>
+                  </div>
+              }
+            </div>
+        }
         <div className={classes.profitWrapper}>
           <div className={classes.profitItem}>{profitRender()}</div>
           {!isShowNote && <>
