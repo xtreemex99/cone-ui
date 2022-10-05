@@ -179,9 +179,9 @@ export default function ThreePointSlider({
         '& .MuiSlider-markLabel': {
           color: MultiSliderMark.color,
           textTransform: 'uppercase',
-          fontSize: '14px',
-          lineHeight: '16px',
-          top: '-13px',
+          fontSize: '12px',
+          lineHeight: '12px',
+          top: '-8px',
           '&:nth-of-type(4)': {
             transform: 'translateX(0%)'
           },
@@ -198,7 +198,7 @@ export default function ThreePointSlider({
           },
           '& .item': {
             background: '#060B17',
-            padding: '0 8px',
+            padding: '0 2px',
             '&:first-of-type': {
               marginBottom: '28px'
             },

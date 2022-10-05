@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import classes from './ssBoostCalculator.module.css';
 import {useRouter} from 'next/router';
 import ThreePointSlider from '../threePointSlider/threePointSlider';
+import ThreePointSliderForTooltip from '../threePointSlider/threePointSliderForTooltip';
 import BigNumber from "bignumber.js";
 import {calculateBoost, calculatePowerForMaxBoost} from "../../stores/helpers/pair-helper";
 import { formatCurrency } from '../../utils';
@@ -227,7 +228,7 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
             </div>
           </div>
           <div className={classes.slider}>
-            <ThreePointSlider
+            {popuped ? <ThreePointSliderForTooltip
                 valueLabelDisplay="on"
                 pointCurrent={currentAPRPercentage}
                 pointUsed={usedAPRPercentage}
@@ -239,7 +240,19 @@ export default function ssBoostCalculator({pair, nft, ve, isMobileView = false, 
                 disabled={false}
                 onChange={onChange}
                 fixedCallback={fixed}
-            />
+            /> : <ThreePointSlider
+                valueLabelDisplay="on"
+                pointCurrent={currentAPRPercentage}
+                pointUsed={usedAPRPercentage}
+                pointMinPct={aprLimits.min}
+                pointMaxPct={aprLimits.max}
+                pointMinValue={veConeLimits.min}
+                pointMaxValue={veConeLimits.max}
+                step={1}
+                disabled={false}
+                onChange={onChange}
+                fixedCallback={fixed}
+            />}
           </div>
           <div className={[ classes.sliderLabels, classes[ 'sliderLabels--mobile' ] ].join(' ')}>
             <div className={classes.sliderLabelsItem}>
