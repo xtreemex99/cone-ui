@@ -179,17 +179,17 @@
 .warningDividerError {
   background-image: url("/images/ui/quote-loader-error--light.svg");
 }
-input[type=number].massiveInputAmount::-webkit-inner-spin-button, 
-input[type=number].massiveInputAmount::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
+input[type=number].massiveInputAmount::-webkit-inner-spin-button,
+input[type=number].massiveInputAmount::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }
 
 input[type=number].massiveInputAmount {
   -moz-appearance: textfield;
 }
-input[type=number].mediumInputAmount::-webkit-inner-spin-button, 
-input[type=number].mediumInputAmount::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
+input[type=number].mediumInputAmount::-webkit-inner-spin-button,
+input[type=number].mediumInputAmount::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }
 
 input[type=number].mediumInputAmount {
@@ -1368,6 +1368,7 @@ input[type=number].mediumInputAmount {
 } */
 
 .tokenSelect {
+  border: 1px solid transparent;
   border-radius: 0 !important;
 }
 .tokenSelect:hover, .tokenSelectOpen {
@@ -1935,6 +1936,10 @@ input[type=number].mediumInputAmount {
 .myLiqSpacer {
   display: inline-flex;
   width: 28px;
+}
+
+.boostCalculator {
+  padding-top: 20px;
 }
 
 @media (max-width:1919px) {

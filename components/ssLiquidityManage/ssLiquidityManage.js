@@ -26,6 +26,7 @@ import AssetSelect from "../../ui/AssetSelect";
 import SwitchCustom from "../../ui/Switch";
 import Hint from "../hint/hint";
 import BackButton from "../../ui/BackButton";
+import BoostCalculator from './ssBoostCalculator';
 
 export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
 
   const [pair, setPair] = useState(null);
   const [veToken, setVeToken] = useState(null);
+  const [pairLoading, setPairLoading] = useState(true);
 
   const [depositLoading, setDepositLoading] = useState(false);
   const [stakeLoading, setStakeLoading] = useState(false);
@@ -1938,6 +1940,16 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
     }
   }, [withdrawAsset?.gauge?.tokenId, vestNFTs.length]);
 
+  const isShowBoostCalculator = !!pair && pair.gauge !== null;
+
+  useEffect(() => {
+    if (!!asset0 && !!asset1) {
+      setPairLoading(false);
+    } else {
+      setPairLoading(true);
+    }
+  }, [asset0, asset1]);
+
   const editLPDesign = !!router.query.address
 
   return (
@@ -2162,12 +2174,17 @@ export default function ssLiquidityManage({initActiveTab = 'deposit',}) {
                     </div>
 
                     {!createLP &&
-                        <div className={classes.nftRow} style={{width: '100%',}}>
-                          <div className={classes.nftTitle}>
-                            Attach {VE_TOKEN_NAME} to your LP to receive boosted rewards
+                        <>
+                          <div className={classes.nftRow} style={{width: '100%',}}>
+                            <div className={classes.nftTitle}>
+                              Attach {VE_TOKEN_NAME} to your LP to receive boosted rewards
+                            </div>
+                            <div className={classes.nftItems}>{renderTokenSelect()}</div>
                           </div>
-                          <div className={classes.nftItems}>{renderTokenSelect()}</div>
-                        </div>
+                          {isShowBoostCalculator && <div className={classes.boostCalculator}>
+                            <BoostCalculator pair={pair} nft={token} ve={veToken} isMobileView={windowWidth < 860} amount={amount0}/>
+                          </div>}
+                        </>
                     }
 
                     <div className={classes.myLiqCont}>
