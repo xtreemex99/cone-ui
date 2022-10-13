@@ -2531,6 +2531,14 @@
       "chainId": 56,
       "decimals": 18,
       "logoURI": "https://raw.githubusercontent.com/xtreemex99/xtreemex99/main/KZE.png"
+    },
+    {
+      "name": "BNBx",
+      "symbol": "BNBx",
+      "address": "0x1bdd3Cf7F79cfB8EdbB955f20ad99211551BA275",
+      "chainId": 56,
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/26842/small/BNBx_Logo.png"
     }
   ]
 }
