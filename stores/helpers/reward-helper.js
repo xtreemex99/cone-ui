@@ -408,6 +408,7 @@ export const claimAllRewards = async (
 
     if (bribePairs.length > 0) {
       const voterContract = new web3.eth.Contract(CONTRACTS.VOTER_ABI, CONTRACTS.VOTER_ADDRESS);
+      console.log('claimBribes', sendGauges, sendTokens, tokenID);
       await callContractWait(
         web3,
         voterContract,
