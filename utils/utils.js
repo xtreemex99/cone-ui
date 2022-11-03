@@ -54,7 +54,7 @@ export function calculateApr(
   positionAmount,
 ) {
   const period = BigNumber(timeEnd).minus(timeStart);
-  if (period.isZero() || BigNumber(positionAmount).isZero()) {
+  if (period.lte(BigNumber(0)) || BigNumber(positionAmount).isZero()) {
     return '0';
   }
   return BigNumber(profit).div(positionAmount).div(period.div(60 * 60 * 24)).times(36500).toString();
