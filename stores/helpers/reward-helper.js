@@ -84,7 +84,7 @@ async function collectBribeRewards(tokenID, userInfo, web3, baseAssets) {
       tokenIdAdr = await bribeContract.methods.tokenIdToAddress(tokenID).call()
     }
 
-    const gaugePosition = userInfo?.gaugePositions?.filter(pos => pos.gauge.pair.id.toLowerCase() === bribe.pair.id)[0];
+    const gaugePosition = userInfo?.gaugePositions?.filter(pos => pos.gauge?.pair?.id?.toLowerCase() === bribe.pair.id)[0] ?? [];
     const balance = gaugePosition?.balance ?? "0";
     const gaugeTotalSupply = gaugePosition?.gauge?.totalSupply ?? "0";
 
